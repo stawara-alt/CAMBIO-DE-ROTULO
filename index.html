@@ -15,14 +15,14 @@
   --azul: #1F4E8C;
   --inst: #C0504D; --inst-claro: #E6B8B7;
   --ret: #F5C400; --ret-claro: #FFF3A6;
-  --tras: #5E9E3A; --tras-claro: #D7E8C4;
+  --tras: #00B0F0; --tras-claro: #DAEEF3;
   --mal: #A93226;
   --fuente: "Bahnschrift", "DIN Alternate", "DIN Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
 * { box-sizing: border-box; }
 html { background: var(--papel); }
 body { margin: 0; font-family: var(--fuente); color: var(--tinta); font-size: 15px; line-height: 1.45; font-variant-numeric: tabular-nums; }
-main { max-width: 1040px; margin: 0 auto; padding: 32px 20px 120px; }
+main { max-width: 1220px; margin: 0 auto; padding: 32px 20px 120px; }
 
 /* encabezado con forma de rótulo */
 .rotulo { display: grid; grid-template-columns: 1fr auto auto; border: 2px solid var(--linea); background: var(--hoja); }
@@ -64,14 +64,19 @@ section.bloque > .cont { padding: 16px; min-width: 0; }
 .explica { margin: 12px 0 0; color: var(--gris); font-size: 13px; }
 
 /* grilla de modificación */
-.grilla { display: grid; grid-template-columns: 52px repeat(3, 1fr) 140px 2.4fr; border: 1.5px solid var(--linea); }
-.grilla > * { border-left: 1px solid var(--linea); min-width: 0; }
-.grilla > *:nth-child(6n+1) { border-left: 0; }
-.grilla .cab { font-size: 12px; color: var(--gris); padding: 3px 8px; border-top: 1px solid var(--linea); background: #F7F9F9; }
-.grilla .auto { padding: 9px 8px; color: var(--gris); }
-.grilla input { text-transform: uppercase; width: 100%; border: 0; padding: 9px 8px; font: inherit; background: transparent; color: var(--tinta); }
-.grilla input:focus { outline: 2px solid var(--azul); outline-offset: -2px; }
-.grilla .fila-color input { background: transparent; }
+.fila-mod-scroll { overflow-x: auto; }
+.grilla { display: flex; min-width: 900px; border: 1.5px solid var(--linea); }
+.grilla .celda { display: flex; align-items: center; gap: 5px; padding: 0 7px; border-left: 1px solid var(--linea); flex: 1 1 0; min-width: 132px; }
+.grilla .celda.fecha { flex: 0 0 165px; }
+.grilla .celda:first-child { border-left: 0; }
+.grilla .celda.mod { flex: 0 0 auto; background: #F7F9F9; }
+.grilla .celda.motivo { flex: 3 1 0; }
+.grilla .celda span { font-size: 11px; color: var(--gris); white-space: nowrap; }
+.grilla .celda b { font-size: 16px; font-weight: 700; min-width: 1.2em; padding: 9px 0; }
+.grilla input { font-size: 14px !important; text-transform: uppercase; flex: 1; min-width: 0; width: 100%; border: 0; padding: 9px 0; font: inherit; background: transparent; color: var(--tinta); }
+.grilla input[type=month] { text-transform: none; }
+.grilla .celda:focus-within { outline: 2px solid var(--azul); outline-offset: -2px; }
+.grilla input:focus { outline: none; }
 .vista { margin-top: 10px; font-size: 13px; color: var(--gris); }
 .vista code { font-family: inherit; color: var(--tinta); background: #F1F3F3; padding: 1px 5px; }
 
@@ -83,6 +88,11 @@ details.obra summary span { font-weight: 400; color: var(--gris); font-size: 13p
 .campos input, .campos select { width: 100%; padding: 7px 8px; border: 1px solid var(--suave); border-bottom: 1.5px solid var(--linea); font: inherit; color: var(--tinta); background: #fff; }
 .campos input:focus, .campos select:focus { outline: 2px solid var(--azul); outline-offset: 0; }
 .campos .ancho { grid-column: span 3; }
+.obra-fila { display: grid; grid-template-columns: 110px minmax(0, 480px); align-items: center; gap: 12px; padding: 4px 0; }
+.obra-fila span { font-size: 13px; color: var(--gris); }
+.obra-fila input { padding: 7px 8px; border: 1px solid var(--suave); border-bottom: 1.5px solid var(--linea); font: inherit; font-weight: 600; color: var(--tinta); }
+.obra-fila input:focus { outline: 2px solid var(--azul); outline-offset: 0; }
+.obra-fila input.falta { border-color: var(--mal); background: #FBEDEB; }
 .campos h3 { grid-column: span 3; margin: 8px 0 -4px; font-size: 13px; font-weight: 600; }
 
 /* planos leídos */
@@ -123,7 +133,6 @@ button.sec { font: inherit; padding: 9px 14px; border: 1.5px solid var(--linea);
   .rotulo { grid-template-columns: 1fr; } .rotulo > div { border-left: 0; border-top: 1px solid var(--linea); } .rotulo > div:first-child { border-top: 0; }
   section.bloque { grid-template-columns: 1fr; } section.bloque > h2 { border-right: 0; border-bottom: 1px solid var(--linea); }
   .sellos { grid-template-columns: repeat(2, 1fr); }
-  .grilla { grid-template-columns: 1fr 1fr; } .grilla > * { border-left: 0 !important; }
   .campos { grid-template-columns: 1fr; } .campos .ancho, .campos h3 { grid-column: auto; }
   .plano .datos { grid-template-columns: 1fr 1fr; }
 }
@@ -168,28 +177,33 @@ button.sec { font: inherit; padding: 9px 14px; border: 1.5px solid var(--linea);
   <section class="bloque">
     <h2>Modificación<span>datos del proyectista de esta modificación</span></h2>
     <div class="cont">
+      <div class="fila-mod-scroll">
       <div class="grilla" id="grilla">
-        <div class="auto" id="m-id" title="Se calcula solo">auto</div>
-        <input id="m-dibujo" placeholder="Apellido" aria-label="Dibujó">
-        <input id="m-reviso" placeholder="Apellido" aria-label="Revisó">
-        <input id="m-aprobo" placeholder="Apellido" aria-label="Aprobó">
-        <input id="m-fecha" type="month" aria-label="Fecha">
-        <input id="m-motivo" placeholder="Obligatorio" aria-label="Motivo" required>
-        <div class="cab">Mod.</div><div class="cab">Dibujó</div><div class="cab">Revisó</div><div class="cab">Aprobó</div><div class="cab">Fecha</div><div class="cab">Motivo</div>
+        <div class="celda mod"><span>Mod. Nº</span><b id="m-id">—</b></div>
+        <label class="celda"><span>Dibujó</span><input id="m-dibujo"></label>
+        <label class="celda"><span>Revisó</span><input id="m-reviso"></label>
+        <label class="celda"><span>Aprobó</span><input id="m-aprobo"></label>
+        <label class="celda fecha"><span>Fecha</span><input id="m-fecha" type="month"></label>
+        <label class="celda motivo"><span>Motivo</span><input id="m-motivo" placeholder="OBLIGATORIO" required></label>
+      </div>
       </div>
       <p class="vista">Va a quedar escrito: <code id="vista"></code></p>
-      <div class="campos" id="cond-cao" hidden>
-        <div><label for="cond">Condición en el nombre del archivo</label>
-          <select id="cond"><option>INSTALACION</option><option>RETIRO</option><option>TRASLADO</option><option>ILUMINACION</option><option>INCENDIO</option></select></div>
-      </div>
     </div>
   </section>
 
-  <section class="bloque">
-    <h2>Obra<span>opcional</span></h2>
+  <section class="bloque" id="sec-obra">
+    <h2>Obra<span>subestación de los planos</span></h2>
+    <div class="cont">
+      <div id="obras"><p class="vacio">Se completa al cargar los planos.</p></div>
+      <p class="explica">Cada plano lleva la obra que decía su propio rótulo. Si alguna se leyó mal, corregila acá.</p>
+    </div>
+  </section>
+
+  <section class="bloque" id="sec-resp">
+    <h2>Responsables<span>opcional · no va en el conforme a obra</span></h2>
     <div class="cont">
       <details class="obra">
-        <summary>Contrato, supervisor y jefe de proyectos <span>— solo se escriben los que completes; la obra sale de cada plano</span></summary>
+        <summary>Contrato, supervisor y jefe de proyectos <span>— solo se escriben los que completes</span></summary>
         <div class="campos">
           <div><label for="o-contrato">Contrato</label><input id="o-contrato" placeholder="--- si es obra interna"></div>
           <h3>Supervisor de proyecto de Edenor</h3>
@@ -402,7 +416,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       }
       if (opt.border) {
         const s = opt.border;
-        const bid = this.addXml('borders', `<border><left style="${s}"><color indexed="64"/></left><right style="${s}"><color indexed="64"/></right><top style="${s}"><color indexed="64"/></top><bottom style="${s}"><color indexed="64"/></bottom><diagonal/></border>`);
+        const col = opt.borderColor ? `<color rgb="FF${opt.borderColor}"/>` : '<color indexed="64"/>';
+        const bid = this.addXml('borders', `<border><left style="${s}">${col}</left><right style="${s}">${col}</right><top style="${s}">${col}</top><bottom style="${s}">${col}</bottom><diagonal/></border>`);
         el.setAttribute('borderId', String(bid)); el.setAttribute('applyBorder', '1');
       }
       if (opt.numFmtId != null) { el.setAttribute('numFmtId', String(opt.numFmtId)); el.setAttribute('applyNumberFormat', '1'); }
@@ -606,6 +621,45 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const dim = byTag(this.doc, 'dimension')[0];
       if (dim) dim.setAttribute('ref', shiftRef(dim.getAttribute('ref')));
     }
+    // ---- borrar filas (desplaza hacia arriba celdas, uniones y dibujos) ----
+    deleteRows(at, count, drawingDoc) {
+      if (count <= 0) return;
+      const fin = at + count - 1;
+      const shiftRef = (ref) => ref.replace(/(\$?)([A-Z]+)(\$?)(\d+)/g, (m, d1, c, d2, r) => (+r > fin ? `${d1}${c}${d2}${+r - count}` : m));
+      for (const [n, r] of [...this.rows.entries()]) if (n >= at && n <= fin) this.data.removeChild(r);
+      for (const [n, r] of [...this.rows.entries()].sort((a, b) => a[0] - b[0])) {
+        if (n <= fin) continue;
+        r.setAttribute('r', String(n - count));
+        for (const c of kids(r, 'c')) c.setAttribute('r', shiftRef(c.getAttribute('r')));
+      }
+      this.rows = new Map();
+      for (const r of kids(this.data, 'row')) this.rows.set(+r.getAttribute('r'), r);
+      for (const m of byTag(this.doc, 'mergeCell')) {
+        const [a, b] = m.getAttribute('ref').split(':');
+        const p = splitRef(a), q = splitRef(b || a);
+        if (p.row >= at && q.row <= fin) { this.removeMerge(m); continue; }
+        if (p.row >= at && p.row <= fin) { this.removeMerge(m); continue; }
+        if (q.row >= at && q.row <= fin) { this.removeMerge(m); continue; }
+        m.setAttribute('ref', shiftRef(m.getAttribute('ref')));
+      }
+      for (const t of ['conditionalFormatting', 'dataValidation', 'hyperlink', 'selection']) {
+        for (const e of byTag(this.doc, t)) for (const a of ['sqref', 'ref']) if (e.getAttribute(a)) e.setAttribute(a, e.getAttribute(a).split(' ').map(shiftRef).join(' '));
+      }
+      for (const f of byTag(this.doc, 'f')) if (f.textContent && /[A-Z]\$?\d/.test(f.textContent) && !/!/.test(f.textContent)) f.textContent = f.textContent.replace(/(?<![A-Za-z_])(\$?)([A-Z]{1,3})(\$?)(\d+)(?![\d(])/g, (m, d1, c, d2, r) => (+r > fin ? `${d1}${c}${d2}${+r - count}` : m));
+      if (drawingDoc) {
+        const root = drawingDoc.documentElement;
+        for (const anc of kids(root)) {
+          const from = byTag(anc, 'xdr:from')[0]; if (!from) continue;
+          const fr = +byTag(from, 'xdr:row')[0].textContent + 1;
+          if (fr >= at && fr <= fin) { root.removeChild(anc); continue; }
+          if (fr > fin) {
+            for (const tag of ['xdr:from', 'xdr:to']) for (const e of byTag(anc, tag)) { const rEl = byTag(e, 'xdr:row')[0]; if (rEl) rEl.textContent = String(+rEl.textContent - count); }
+          }
+        }
+      }
+      const dim = byTag(this.doc, 'dimension')[0];
+      if (dim) dim.setAttribute('ref', shiftRef(dim.getAttribute('ref')));
+    }
     lastRow() { return Math.max(0, ...this.rows.keys()); }
     xml() { return ser(this.doc); }
   }
@@ -624,11 +678,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   const norm = (s) => sinTilde(s).toUpperCase().replace(/\s+/g, ' ').trim();
   const SELLOS = ['VALIDO PARA OBRA', 'INSTALACION', 'RETIRO', 'TRASLADO', 'CONFORME A OBRA', 'V.P.O.', 'VPO', 'V.P.O'];
   const esSello = (t) => SELLOS.includes(norm(t));
+  const SELLO_RE = /^(V\.?\s?P\.?\s?O\.?|INSTALACION|RETIRO|TRASLADO|CONFORME A OBRA|VALIDO PARA OBRA)$/;
+  const esCartel = (t) => SELLO_RE.test(norm(t).replace(/\s+/g, ' '));
 
   const TIPOS = {
     instalacion: { nombre: 'INSTALACIÓN', cond: 'INSTALACION', fila: 'E6B8B7', sello: { fill: 'DA9694', color: 'FFFFFF' } },
     retiro: { nombre: 'RETIRO', cond: 'RETIRO', fila: 'FFFF00', sello: { fill: 'FFFF00', color: 'FF0000' } },
-    traslado: { nombre: 'TRASLADO', cond: 'TRASLADO', fila: 'C4D79B', sello: { fill: '92D050', color: '000000' } },
+    traslado: { nombre: 'TRASLADO', cond: 'TRASLADO', fila: 'B7DEE8', sello: { fill: '00B0F0', color: 'FFFFFF' } },
     cao: { nombre: 'CONFORME A OBRA', cond: null },
   };
 
@@ -636,6 +692,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const m = /(\d{3})\s*\.?\s*E\s*\.?\s*(\d{4})/i.exec(String(s || ''));
     return m ? `${m[1]}E${m[2]}` : '';
   }
+  // los nombres de archivo no pueden llevar / \\ : * ? " < > | (la barra arma una carpeta dentro del .zip)
+  function limpiarNombre(t) { return String(t || '').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim(); }
   function excelSerial(y, m, d) { return (Date.UTC(y, m - 1, d || 1) - Date.UTC(1899, 11, 30)) / 86400000; }
   function fechaTexto(f) {
     if (!f) return '';
@@ -825,10 +883,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   function leerCaratulaNueva(grid, nombreArchivo) {
     const out = { historia: [], vpo: [], se: '', bornera: '', plano: '', obra: {}, avisos: [] };
     const hdrs = grid.filter((r) => r.cells.some((c) => /^MOD\.?$/.test(norm(c.text))));
-    if (hdrs.length >= 2) {
-      out.vpo = leerGrilla(grid, hdrs[0].row).mods;
-      out.historia = leerGrilla(grid, hdrs.at(-1).row).mods;
-    }
+    if (hdrs.length >= 2) out.vpo = leerGrilla(grid, hdrs[0].row).mods;
+    if (hdrs.length) out.historia = leerGrilla(grid, hdrs.at(-1).row).mods;
     const zona = grid.filter((r) => hdrs.length && r.row > hdrs.at(-1).row);
     for (const r of zona) for (const c of r.cells) {
       const t = norm(c.text);
@@ -842,15 +898,32 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return out;
   }
 
-  async function leer(buf, nombreArchivo) {
+  // ¿la carátula tiene el logo nuevo de Edenor (mismo archivo de imagen que el modelo)?
+  async function tieneLogoNuevo(pkg, s0, kit) {
+    if (!kit) return false;
+    const rels = await X.relsOf(pkg, s0.path);
+    const dr = rels.list.find((r) => r.type === 'drawing' && r.target);
+    if (!dr) return false;
+    const drels = await X.relsOf(pkg, dr.target);
+    const kitB64 = new Set(kit.media.map((m) => m.b64));
+    for (const r of drels.list) {
+      if (r.type !== 'image' || !r.target) continue;
+      const f = pkg.zip.file(r.target); if (!f) continue;
+      if (kitB64.has(await f.async('base64'))) return true;
+    }
+    return false;
+  }
+
+  async function leer(buf, nombreArchivo, kit) {
     if (/\.xls$/i.test(nombreArchivo)) throw new Error('Es un .xls (Excel 97-2003). Abrilo en Excel y guardalo como .xlsx para poder convertirlo sin perder dibujos ni formato.');
     const pkg = await X.openPackage(buf);
     const styles = new X.StyleBook(pkg.styles);
     const s0 = pkg.sheets[0];
     const sh = new X.Sheet(await pkg.doc(s0.path), pkg);
     const grid = sh.grid(styles);
-    const formato = leerFormato(grid);
-    const datos = formato === 'nuevo' ? leerCaratulaNueva(grid, nombreArchivo) : leerCaratulaVieja(grid, nombreArchivo);
+    let formato = leerFormato(grid);
+    if (formato === 'viejo' && await tieneLogoNuevo(pkg, s0, kit)) formato = 'cao-nuevo';
+    const datos = formato === 'viejo' ? leerCaratulaVieja(grid, nombreArchivo) : leerCaratulaNueva(grid, nombreArchivo);
     datos.formato = formato;
     datos.hojas = pkg.sheets.length;
     if (!datos.obraTexto && datos.se) datos.obraTexto = 'S.E. N°' + datos.se;
@@ -901,19 +974,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       return { hdr: hdr.row, cols, filas };
     };
     const sup = mapa(hdrs[0]), inf = mapa(hdrs.at(-1));
-    let sello = null;
-    for (const r of grid) if (r.row > sup.hdr && r.row < inf.filas[0].row) for (const c of r.cells) if (['INSTALACION', 'RETIRO', 'TRASLADO', 'V.P.O.'].includes(norm(c.text))) sello = c;
+    const enGrilla = new Set([sup.hdr, inf.hdr, ...sup.filas.map((f) => f.row), ...inf.filas.map((f) => f.row)]);
+    const sellos = [];
+    for (const r of grid) if (!enGrilla.has(r.row)) for (const c of r.cells) if (esCartel(c.text)) sellos.push(c);
+    const sello = null;
     const find = (re, from = 0) => { for (const r of grid) if (r.row >= from) for (const c of r.cells) if (re.test(norm(c.text))) return c; return null; };
-    return { grid, sup, inf, sello, find };
+    return { grid, sup, inf, sello, sellos, find };
   }
 
   // escribe una fila de modificación
   function escribirMod(sh, sb, grilla, rowN, m, colorFill) {
     const { cols } = grilla;
+    // cada celda conserva sus propios bordes (la línea gruesa solo la tiene la fila de arriba de la grilla)
     const base = {};
-    const top = grilla.filas[0].row; // fila de arriba: estilo "sin color"
-    for (let c = cols.id; c <= cols.last; c++) base[c] = sh.style(mkRef(c, top === rowN && grilla.filas[1] ? grilla.filas[1].row : top));
-    const st = (c) => (colorFill ? sb.variant(base[c], { fill: colorFill }) : base[c]);
+    for (let c = cols.id; c <= cols.last; c++) base[c] = sh.style(mkRef(c, rowN));
+    const st = (c) => sb.variant(base[c], { fill: colorFill || null });
     for (let c = cols.id; c <= cols.last; c++) sh.setStyle(mkRef(c, rowN), st(c));
     sh.setText(mkRef(cols.id, rowN), m.id, st(cols.id));
     sh.setText(mkRef(cols.dibujo, rowN), m.dibujo || '', st(cols.dibujo));
@@ -924,20 +999,18 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     for (let c = cols.motivo + 1; c <= cols.last; c++) sh.clear(mkRef(c, rowN));
   }
 
-  function descolorearGrilla(sh, grilla, vaciar) {
+  function descolorearGrilla(sh, sb, grilla, vaciar) {
     const { cols, filas } = grilla;
-    const ref = filas[0].row;
     for (const f of filas) {
-      if (f.row === ref) continue;
       for (let c = cols.id; c <= cols.last; c++) {
-        sh.setStyle(mkRef(c, f.row), sh.style(mkRef(c, ref)));
+        sh.setStyle(mkRef(c, f.row), sb.variant(sh.style(mkRef(c, f.row)), { fill: null }));
         if (vaciar && c > cols.id) sh.clear(mkRef(c, f.row));
       }
     }
   }
 
   // fila libre más baja; si no hay, inserta una arriba de la grilla
-  function filaLibre(sh, grilla, drawingDoc) {
+  function filaLibre(sh, sb, grilla, drawingDoc) {
     const { filas } = grilla;
     let ultimaLlena = -1;
     filas.forEach((f, i) => { if (f.lleno) ultimaLlena = i; });
@@ -947,6 +1020,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const top = filas[0].row;
     sh.insertRows(top, 1, top, drawingDoc);
     sh.setText(mkRef(grilla.cols.id, top), '?');
+    // la fila que antes era la de arriba pasa a tener el estilo de una fila intermedia
+    const media = filas[1] ? filas[1].row + 1 : null;
+    if (media) for (let c = grilla.cols.id; c <= grilla.cols.last; c++) sh.setStyle(mkRef(c, top + 1), sb.variant(sh.style(mkRef(c, media)), { fill: null }));
     return top;
   }
 
@@ -982,67 +1058,179 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     let rev;
     if (op.tipo === 'cao') {
       // grilla superior vacía y sin color, sin sello, la obra baja como letra nueva
-      descolorearGrilla(sh, e.sup, true);
-      quitarSello(sh, e);
+      descolorearGrilla(sh, sb, e.sup, true);
+      quitarSellos(sh, e);
       e = estructura(sh);
       const ids = e.inf.filas.filter((f) => f.lleno).map((f) => f.id);
       const id = siguienteLetra(ids);
-      const rowN = filaLibre(sh, e.inf, drawingDoc);
+      const rowN = filaLibre(sh, sb, e.inf, drawingDoc);
       e = estructura(sh);
       const motivo = String(mod.motivo || '').trim().toUpperCase();
       escribirMod(sh, sb, e.inf, rowN, { ...mod, id, motivo }, null);
       rev = id;
+      // en el conforme a obra no va el rótulo de arriba: se borran sus filas (grilla, logo y datos de la obra)
+      e = estructura(sh);
+      const desde = e.sup.filas[0].row;
+      let hasta = e.sup.hdr;
+      for (const r of e.grid) if (r.row > e.sup.hdr && r.row < e.inf.filas[0].row && r.cells.some((c) => /^(INT\.?|OBRA|CONTRATO|SUPERVISOR|JEFE|NOMBRE:?|E-?MAIL:?)/.test(norm(c.text)))) hasta = Math.max(hasta, r.row);
+      for (const m of sh.merges()) { const [a, b] = m.split(':'); if (!b) continue; const p = splitRef(a), q = splitRef(b); if (p.row >= desde && p.row <= hasta) hasta = Math.max(hasta, q.row); }
+      sh.deleteRows(desde, hasta - desde + 1, drawingDoc);
+      op.filasBorradas = { desde, cantidad: hasta - desde + 1 };
     } else {
-      descolorearGrilla(sh, e.sup, false);
+      descolorearGrilla(sh, sb, e.sup, false);
       const ids = idsSuperiores(e.sup);
       const id = String(ids.length ? Math.max(...ids) + 1 : 1);
-      const rowN = filaLibre(sh, e.sup, drawingDoc);
+      const rowN = filaLibre(sh, sb, e.sup, drawingDoc);
       e = estructura(sh);
       const motivo = String(mod.motivo || '').trim().toUpperCase();
       escribirMod(sh, sb, e.sup, rowN, { ...mod, id, motivo }, tipo.fila);
-      ponerSello(sh, sb, e, tipo);
+      quitarSellos(sh, e);
+      e = estructura(sh);
+      ponerSellos(sh, sb, e, tipo, op.avisos, drawingDoc);
       rev = id;
     }
     return rev;
   }
 
-  function quitarSello(sh, e) {
-    if (!e.sello) return;
-    const ref = e.sello.ref;
-    const m = sh.mergeAt(ref);
-    const { col, row } = splitRef(ref);
-    const vecino = sh.style(mkRef(col, Math.max(1, row - 2)));
-    let cells = [ref];
-    if (m) {
-      const [a, b] = m.getAttribute('ref').split(':'); const p = splitRef(a), q = splitRef(b);
-      cells = [];
-      for (let r = p.row; r <= q.row; r++) for (let c = p.col; c <= q.col; c++) cells.push(mkRef(c, r));
-      sh.removeMerge(m);
+  function quitarSellos(sh, e) {
+    for (const cel of e.sellos) {
+      const ref = cel.ref;
+      const m = sh.mergeAt(ref);
+      const { col, row } = splitRef(ref);
+      let cells = [ref], top = row;
+      if (m) {
+        const [a, b] = m.getAttribute('ref').split(':'); const p = splitRef(a), q = splitRef(b);
+        cells = []; top = p.row;
+        for (let r = p.row; r <= q.row; r++) for (let c = p.col; c <= q.col; c++) cells.push(mkRef(c, r));
+        sh.removeMerge(m);
+      }
+      const vecino = sh.style(mkRef(col, Math.max(1, top - 1)));
+      for (const c of cells) { sh.clear(c); sh.setStyle(c, vecino); }
     }
-    for (const c of cells) { sh.clear(c); sh.setStyle(c, vecino); }
   }
 
-  function ponerSello(sh, sb, e, tipo) {
-    let ref, rango;
-    if (e.sello) {
-      ref = e.sello.ref;
-      const m = sh.mergeAt(ref);
-      rango = m ? m.getAttribute('ref') : ref;
-    } else {
-      // a la derecha del cuerpo, dos filas encima de la grilla inferior
-      const contrato = e.find(/^CONTRATO$/, e.sup.hdr);
-      const col = contrato ? contrato.col + 1 : 10;
-      const row = e.inf.filas[0].row - 4;
-      ref = mkRef(col, row);
-      rango = ref + ':' + mkRef(col + 1, row + 1);
-      sh.addMerge(rango);
+  // ---------- geometría de la hoja (en píxeles) para no tapar texto ----------
+  const XDR = 'http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing';
+  const DML = 'http://schemas.openxmlformats.org/drawingml/2006/main';
+  function geometria(sh, sb) {
+    const doc = sh.doc;
+    const fmt = byTag(doc, 'sheetFormatPr')[0];
+    const defW = fmt && fmt.hasAttribute('defaultColWidth') ? +fmt.getAttribute('defaultColWidth') : 9.14;
+    const defH = fmt && fmt.hasAttribute('defaultRowHeight') ? +fmt.getAttribute('defaultRowHeight') : 15;
+    const anchos = {};
+    for (const c of byTag(doc, 'col')) for (let i = +c.getAttribute('min'); i <= Math.min(+c.getAttribute('max'), 200); i++) anchos[i] = c.getAttribute('hidden') === '1' ? 0 : +(c.getAttribute('width') || defW);
+    const wPx = (c) => Math.round((anchos[c] ?? defW) * 7 + 5);
+    const xCache = [0, 0];
+    const colX = (c) => { for (let i = xCache.length; i <= c; i++) xCache[i] = xCache[i - 1] + wPx(i - 1); return xCache[c]; };
+    const hPx = (r) => { const el = sh.row(r); const ht = el && el.hasAttribute('ht') ? +el.getAttribute('ht') : defH; return ht * 4 / 3; };
+    const fuentes = kids(sb.sec('fonts'));
+    const fuente = (s) => {
+      const xf = sb.xf(s); const f = xf && fuentes[+xf.getAttribute('fontId') || 0];
+      const sz = f && byTag(f, 'sz')[0] ? +byTag(f, 'sz')[0].getAttribute('val') : 10;
+      return { sz, b: !!(f && byTag(f, 'b').length) };
+    };
+    const alineado = (s) => { const xf = sb.xf(s); const al = xf && byTag(xf, 'alignment')[0]; return { h: al ? al.getAttribute('horizontal') : '', wrap: al ? al.getAttribute('wrapText') === '1' : false }; };
+    return { colX, wPx, hPx, fuente, alineado };
+  }
+
+  // rectángulos ocupados (en columnas-píxel y filas) por texto de celdas y por dibujos
+  function ocupados(sh, sb, e, drawingDoc, G) {
+    const rects = [];
+    for (const r of e.grid) for (const c of r.cells) {
+      const m = sh.mergeAt(c.ref);
+      let c1 = c.col, c2 = c.col, r1 = c.row, r2 = c.row;
+      if (m) { const [a, b] = m.getAttribute('ref').split(':'); const p = splitRef(a), q = splitRef(b); c1 = p.col; c2 = q.col; r1 = p.row; r2 = q.row; }
+      const x1 = G.colX(c1), x2 = G.colX(c2 + 1);
+      const f = G.fuente(c.s), al = G.alineado(c.s);
+      const tw = c.text.length * f.sz * (f.b ? 0.78 : 0.7) * 4 / 3 + 6;
+      let a1 = x1, a2 = x2;
+      if (!al.wrap && tw > x2 - x1) {
+        if (al.h === 'center' || al.h === 'centerContinuous') { const mid = (x1 + x2) / 2; a1 = mid - tw / 2; a2 = mid + tw / 2; }
+        else if (al.h === 'right') a1 = x2 - tw;
+        else if (typeof c.v === 'string') a2 = x1 + tw; // los números no desbordan
+      }
+      rects.push({ x1: a1, x2: a2, r1, r2 });
     }
-    const base = sh.style(ref);
-    const st = sb.variant(base, { fill: tipo.sello.fill, font: { b: true, i: true, sz: 14, color: tipo.sello.color }, border: 'medium', align: { horizontal: 'center', vertical: 'center' } });
-    const [a, b] = rango.split(':');
-    const p = splitRef(a), q = splitRef(b || a);
-    for (let r = p.row; r <= q.row; r++) for (let c = p.col; c <= q.col; c++) sh.setStyle(mkRef(c, r), st);
-    sh.setText(ref, tipo.nombre, st);
+    if (drawingDoc) for (const anc of kids(drawingDoc.documentElement)) {
+      const from = byTag(anc, 'xdr:from')[0]; if (!from) continue;
+      const fc = +byTag(from, 'xdr:col')[0].textContent, fr = +byTag(from, 'xdr:row')[0].textContent;
+      const x1 = G.colX(fc + 1) + (+byTag(from, 'xdr:colOff')[0].textContent) / 9525;
+      const to = byTag(anc, 'xdr:to')[0];
+      let x2, r2;
+      if (to) { const tc = +byTag(to, 'xdr:col')[0].textContent; x2 = G.colX(tc + 1) + (+byTag(to, 'xdr:colOff')[0].textContent) / 9525; r2 = +byTag(to, 'xdr:row')[0].textContent + 1; }
+      else {
+        const ext = byTag(anc, 'xdr:ext')[0]; const cx = ext ? +ext.getAttribute('cx') / 9525 : 50, cy = ext ? +ext.getAttribute('cy') / 9525 : 20;
+        x2 = x1 + cx; let h = 0; r2 = fr + 1; while (h < cy && r2 < fr + 60) { h += G.hPx(r2); r2++; } r2--;
+      }
+      rects.push({ x1, x2, r1: fr + 1, r2 });
+    }
+    return rects;
+  }
+
+  // busca dónde poner los dos carteles (V.P.O. arriba, tipo abajo) sin tapar nada
+  function lugarCarteles(sh, sb, e, drawingDoc) {
+    const G = geometria(sh, sb);
+    const occ = ocupados(sh, sb, e, drawingDoc, G);
+    const choca = (x1, x2, r1, r2) => occ.some((o) => o.x1 < x2 && o.x2 > x1 && o.r1 <= r2 && o.r2 >= r1);
+    const finObra = e.find(/^INT\.?$/, e.sup.hdr);
+    const minimo = (finObra ? finObra.row : e.sup.hdr + 6) + 1;
+    const maximo = e.inf.filas[0].row - 2;
+    for (const col of [10, 9, 11, 8, 7]) {
+      const x1 = G.colX(col) + 4, x2 = G.colX(col + 2) - 4;
+      for (let r = maximo - 1; r - 3 >= minimo; r--) {
+        if (!choca(x1, x2, r - 3, r - 2) && !choca(x1, x2, r, r + 1)) return { col, r };
+      }
+    }
+    return null;
+  }
+
+  function nuevoId(drawingDoc) {
+    let max = 0;
+    for (const el of byTag(drawingDoc, 'xdr:cNvPr')) max = Math.max(max, +el.getAttribute('id') || 0);
+    return max + 1;
+  }
+
+  function agregarCuadro(drawingDoc, G, { col, row, cols, rows, texto, fondo, color, borde, sz, i }) {
+    const id = nuevoId(drawingDoc);
+    const ancho = G.colX(col + cols) - G.colX(col), alto = Array.from({ length: rows }, (_, k) => G.hPx(row + k)).reduce((a, b) => a + b, 0);
+    const emu = (px) => Math.round(px * 9525);
+    const xml = `<xdr:twoCellAnchor xmlns:xdr="${XDR}" xmlns:a="${DML}" editAs="oneCell">` +
+      `<xdr:from><xdr:col>${col - 1}</xdr:col><xdr:colOff>38100</xdr:colOff><xdr:row>${row - 1}</xdr:row><xdr:rowOff>19050</xdr:rowOff></xdr:from>` +
+      `<xdr:to><xdr:col>${col - 1 + cols}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row - 1 + rows}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>` +
+      `<xdr:sp macro="" textlink=""><xdr:nvSpPr><xdr:cNvPr id="${id}" name="Cartel ${texto}"/><xdr:cNvSpPr txBox="1"/></xdr:nvSpPr>` +
+      `<xdr:spPr><a:xfrm><a:off x="${emu(G.colX(col))}" y="0"/><a:ext cx="${emu(ancho)}" cy="${emu(alto)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>` +
+      `<a:solidFill><a:srgbClr val="${fondo}"/></a:solidFill><a:ln w="28575"><a:solidFill><a:srgbClr val="${borde}"/></a:solidFill></a:ln></xdr:spPr>` +
+      `<xdr:txBody><a:bodyPr vertOverflow="clip" horzOverflow="clip" wrap="square" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0" anchor="ctr"/><a:lstStyle/>` +
+      `<a:p><a:pPr algn="ctr"/><a:r><a:rPr lang="es-AR" sz="${sz * 100}" b="1" i="${i ? 1 : 0}"><a:solidFill><a:srgbClr val="${color}"/></a:solidFill><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${texto}</a:t></a:r></a:p>` +
+      `</xdr:txBody></xdr:sp><xdr:clientData/></xdr:twoCellAnchor>`;
+    const frag = X.parse(xml).documentElement;
+    drawingDoc.documentElement.appendChild(drawingDoc.importNode(frag, true));
+  }
+
+  function ponerSellos(sh, sb, e, tipo, avisos, drawingDoc) {
+    if (!drawingDoc) { avisos?.push('La carátula no tiene capa de dibujo; no pude agregar los carteles.'); return; }
+    const G = geometria(sh, sb);
+    let lugar = lugarCarteles(sh, sb, e, drawingDoc);
+    if (!lugar) { lugar = { col: 10, r: e.inf.filas[0].row - 3 }; avisos?.push('No encontré un lugar libre para los carteles: revisá que no tapen texto de la carátula.'); }
+    const { col, r } = lugar;
+    agregarCuadro(drawingDoc, G, { col, row: r - 3, cols: 2, rows: 2, texto: 'V.P.O.', fondo: 'FFFFFF', color: 'FF0000', borde: 'FF0000', sz: 16, i: false });
+    agregarCuadro(drawingDoc, G, { col, row: r, cols: 2, rows: 2, texto: tipo.nombre, fondo: tipo.sello.fill, color: tipo.sello.color, borde: '000000', sz: 14, i: true });
+  }
+
+  // -------- formas (cuadros de texto) con carteles viejos --------
+  async function borrarCartelesForma(pkg, sheetPath) {
+    const rels = await X.relsOf(pkg, sheetPath);
+    let n = 0;
+    for (const r of rels.list.filter((x) => x.type === 'drawing' && x.target)) {
+      const d = await pkg.doc(r.target); if (!d) continue;
+      const root = d.documentElement;
+      for (const anc of kids(root)) {
+        if (byTag(anc, 'xdr:pic').length) continue;
+        const t = byTag(anc, 'a:t').map((x) => x.textContent).join(' ');
+        if (t.trim() && esCartel(t)) { root.removeChild(anc); n++; }
+      }
+    }
+    return n;
   }
 
   // -------- carátula nueva a partir del kit + datos del plano viejo --------
@@ -1097,9 +1285,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     e = g();
     const faltan = necesarias - e.inf.filas.length;
     if (faltan > 0) {
-      const top = e.inf.filas[0].row;
-      sh.insertRows(top, faltan, top, drawingDoc);
-      for (let i = 0; i < faltan; i++) sh.setText(mkRef(e.inf.cols.id, top + i), '?');
+      const seg = (e.inf.filas[1] || e.inf.filas[0]).row;
+      sh.insertRows(seg, faltan, seg, drawingDoc);
+      for (let i = 0; i < faltan; i++) sh.setText(mkRef(e.inf.cols.id, seg + i), '?');
     }
     e = g();
     const filas = e.inf.filas;
@@ -1192,6 +1380,76 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return true;
   }
 
+  // -------- volver a poner el bloque superior (filas 26 a 36 del modelo) en un CAO con rótulo nuevo --------
+  async function insertarBloqueSuperior(pkg, sh, sb, drawingDoc, drawingPath, kit) {
+    const K0 = 26, K1 = 36, n = K1 - K0 + 1;
+    const offset = sb.importKit(kit.styles);
+    const kdoc = X.parse(kit.sheetXml);
+    const krows = byTag(kdoc, 'row').filter((r) => +r.getAttribute('r') >= K0 && +r.getAttribute('r') <= K1);
+    // dónde: debajo de la última fila con borde inferior de la tabla de abreviaturas
+    const grid = sh.grid(null);
+    const hCod = grid.flatMap((r) => r.cells).find((c) => /^CODIGO$/.test(norm(c.text)));
+    if (!hCod) return false;
+    const fuentesBordes = kids(sb.sec('borders'));
+    const conBorde = (rn) => {
+      const st = sh.style(mkRef(1, rn)); const xf = sb.xf(st); if (!xf) return false;
+      const b = fuentesBordes[+xf.getAttribute('borderId') || 0]; if (!b) return false;
+      const bot = byTag(b, 'bottom')[0], top = byTag(b, 'top')[0];
+      return !!((bot && bot.getAttribute('style')) || (top && top.getAttribute('style')));
+    };
+    let at = hCod.row + 1;
+    while (at < hCod.row + 80 && conBorde(at)) at++;
+    sh.insertRows(at, n, at - 1, drawingDoc);
+    for (const kr of krows) {
+      const rn = at + (+kr.getAttribute('r') - K0);
+      const row = sh.row(rn, true);
+      for (const c of kids(row, 'c')) row.removeChild(c);
+      for (const a of ['ht', 'customHeight']) { if (kr.hasAttribute(a)) row.setAttribute(a, kr.getAttribute(a)); else row.removeAttribute(a); }
+      row.removeAttribute('s'); row.removeAttribute('customFormat');
+      for (const kc of kids(kr, 'c')) {
+        const c = sh.doc.importNode(kc, true);
+        c.setAttribute('r', c.getAttribute('r').replace(/\d+$/, String(rn)));
+        if (c.hasAttribute('s')) c.setAttribute('s', String(+c.getAttribute('s') + offset));
+        row.appendChild(c);
+      }
+    }
+    for (const m of byTag(kdoc, 'mergeCell')) {
+      const [a, b] = m.getAttribute('ref').split(':'); if (!b) continue;
+      const p = splitRef(a), q = splitRef(b);
+      if (p.row >= K0 && q.row <= K1) sh.addMerge(mkRef(p.col, p.row - K0 + at) + ':' + mkRef(q.col, q.row - K0 + at));
+    }
+    // logo del bloque superior
+    if (drawingDoc && drawingPath) {
+      const kd = X.parse(kit.drawingXml);
+      const drels = await X.relsOf(pkg, drawingPath);
+      let relsDoc = drels.doc;
+      if (!relsDoc) { relsDoc = X.parse(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="${X.PKG}"></Relationships>`); }
+      pkg.files[drels.path] = relsDoc;
+      const ids = new Set(byTag(relsDoc, 'Relationship').map((r) => r.getAttribute('Id')));
+      for (const anc of kids(kd.documentElement)) {
+        if (!byTag(anc, 'xdr:pic').length) continue;
+        const fr = +byTag(byTag(anc, 'xdr:from')[0], 'xdr:row')[0].textContent + 1;
+        if (fr < K0 || fr > K1) continue;
+        const blip = byTag(anc, 'a:blip')[0];
+        const rid = blip.getAttribute('r:embed');
+        const media = kit.media.find((m) => m.rid === rid);
+        const mp = 'xl/media/rotulo_' + media.name;
+        pkg.zip.file(mp, media.b64, { base64: true });
+        X.ensureDefault(pkg, 'png', 'image/png');
+        let nid = 'rIdRotulo1'; let k = 1; while (ids.has(nid)) nid = 'rIdRotulo' + (++k); ids.add(nid);
+        const rel = relsDoc.createElementNS(X.PKG, 'Relationship');
+        rel.setAttribute('Id', nid); rel.setAttribute('Type', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'); rel.setAttribute('Target', '../media/rotulo_' + media.name);
+        relsDoc.documentElement.appendChild(rel);
+        const clone = drawingDoc.importNode(anc, true);
+        byTag(clone, 'a:blip')[0].setAttribute('r:embed', nid);
+        for (const tag of ['xdr:from', 'xdr:to']) for (const e of byTag(clone, tag)) { const r = byTag(e, 'xdr:row')[0]; if (r) r.textContent = String(+r.textContent - K0 + at); }
+        const cnv = byTag(clone, 'xdr:cNvPr')[0]; if (cnv) cnv.setAttribute('id', String(nuevoId(drawingDoc)));
+        drawingDoc.documentElement.appendChild(clone);
+      }
+    }
+    return true;
+  }
+
   // -------- dibujos: borrar imágenes del plano viejo --------
   async function borrarImagenes(pkg, sheetPath) {
     const rels = await X.relsOf(pkg, sheetPath);
@@ -1210,7 +1468,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const sb = new X.StyleBook(pkg.styles);
     const s0 = pkg.sheets[0];
     let sh = new X.Sheet(await pkg.doc(s0.path), pkg);
-    const formato = leerFormato(sh.grid(sb));
+    let formato = leerFormato(sh.grid(sb));
+    if (formato === 'viejo' && await tieneLogoNuevo(pkg, s0, kit)) formato = 'cao-nuevo';
     const d = Object.assign({}, op.datos);
     d.hojas = pkg.sheets.length;
     d.avisos = [];
@@ -1256,8 +1515,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const rels = await X.relsOf(pkg, s0.path);
       const dr = rels.list.find((r) => r.type === 'drawing');
       if (dr) drawingDoc = await pkg.doc(dr.target);
+      if (formato === 'cao-nuevo') {
+        const ok = await insertarBloqueSuperior(pkg, sh, sb, drawingDoc, dr && dr.target, kit);
+        if (!ok) throw new Error('No pude ubicar dónde reponer el rótulo de arriba en esta carátula.');
+      }
     }
 
+    let carteles = 0;
+    for (const s of pkg.sheets) carteles += await borrarCartelesForma(pkg, s.path);
+    op.avisos = d.avisos;
     const rev = aplicarDestino(sh, sb, drawingDoc, op);
 
     // hojas internas
@@ -1269,18 +1535,32 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (actualizarPie(new X.Sheet(doc, pkg), d, s.index + 1, total)) pies++;
     }
 
-    // área de impresión de la carátula y recálculo al abrir
+    // área de impresión de la carátula (hasta el "Total" del rótulo) y recálculo al abrir
     const wbEl = pkg.wb.documentElement;
     let dns = kid(wbEl, 'definedNames');
-    if (formato === 'viejo') {
-      if (dns) for (const dn of kids(dns, 'definedName')) if (dn.getAttribute('localSheetId') === '0') dns.removeChild(dn);
-      if (!dns) { dns = pkg.wb.createElementNS(X.NS, 'definedNames'); wbEl.insertBefore(dns, kid(wbEl, 'calcPr') || null); }
-      const tot = estructura(sh).find(/^TOTAL/);
+    if (formato === 'viejo' && dns) for (const dn of kids(dns, 'definedName')) if (dn.getAttribute('localSheetId') === '0') dns.removeChild(dn);
+    {
+      const tot = sh.grid(null).flatMap((r) => r.cells).filter((c) => /^TOTAL/.test(norm(c.text))).at(-1);
       const last = tot ? tot.row + 2 : sh.lastRow();
-      const dn = pkg.wb.createElementNS(X.NS, 'definedName');
-      dn.setAttribute('name', '_xlnm.Print_Area'); dn.setAttribute('localSheetId', '0');
-      dn.appendChild(pkg.wb.createTextNode(`'${s0.name.replace(/'/g, "''")}'!$A$1:$L$${last}`));
-      dns.insertBefore(dn, dns.firstChild);
+      if (!dns) { dns = pkg.wb.createElementNS(X.NS, 'definedNames'); wbEl.insertBefore(dns, kid(wbEl, 'calcPr') || null); }
+      const pa = kids(dns, 'definedName').find((dn) => dn.getAttribute('name') === '_xlnm.Print_Area' && dn.getAttribute('localSheetId') === '0');
+      const hoja = `'${s0.name.replace(/'/g, "''")}'`;
+      if (pa && !/\[/.test(pa.textContent) && /:\$?[A-Z]+\$?\d+$/.test(pa.textContent)) pa.textContent = pa.textContent.replace(/(\$?\d+)$/, (m) => (m.startsWith('$') ? '$' : '') + last);
+      else {
+        if (pa) dns.removeChild(pa);
+        const dn = pkg.wb.createElementNS(X.NS, 'definedName');
+        dn.setAttribute('name', '_xlnm.Print_Area'); dn.setAttribute('localSheetId', '0');
+        dn.appendChild(pkg.wb.createTextNode(`${hoja}!$A$1:$L$${last}`));
+        dns.insertBefore(dn, dns.firstChild);
+      }
+    }
+    if (formato !== 'viejo' && op.filasBorradas && dns) {
+      const { desde, cantidad } = op.filasBorradas; const fin = desde + cantidad - 1;
+      for (const dn of kids(dns, 'definedName')) {
+        if (dn.getAttribute('name') === '_xlnm.Print_Area') continue;
+        if (dn.getAttribute('localSheetId') !== '0' && !dn.textContent.includes(s0.name)) continue;
+        dn.textContent = dn.textContent.replace(/\$(\d+)/g, (m, r) => (+r > fin ? '$' + (+r - cantidad) : m));
+      }
     }
     if (dns && !kids(dns).length) wbEl.removeChild(dns);
     let calc = kid(wbEl, 'calcPr');
@@ -1291,11 +1571,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
     const out = await X.savePackage(pkg);
     const tipo = TIPOS[op.tipo];
-    const cond = op.tipo === 'cao' ? (op.condicionCAO || 'INSTALACION') : tipo.cond;
-    const estado = op.tipo === 'cao' ? 'CAO' : 'VPO';
-    const desc = op.descripcion || ('Born. ' + (d.bornera || '')).trim();
-    const nombre = `${d.plano} (${desc}) [rev. ${rev}] - ${cond} [${estado}].xlsx`;
-    return { bytes: out, nombre, rev, formato, imagenes, pies, avisos: d.avisos };
+    const desc = limpiarNombre(op.descripcion || ('Born. ' + (d.bornera || '')));
+    const nombre = limpiarNombre(op.tipo === 'cao' ? `${d.plano} (${desc}) [rev. ${rev}] [CAO].xlsx` : `${d.plano} (${desc}) [rev. ${rev}] - ${tipo.cond} [VPO].xlsx`);
+    return { bytes: out, nombre, rev, formato, imagenes, pies, carteles, avisos: d.avisos };
   }
 
   function revPrevista(datos, tipo) {
@@ -1303,7 +1581,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const n = (datos.vpo || []).map((m) => +m.id).filter((x) => !isNaN(x));
     return String(n.length ? Math.max(...n) + 1 : 1);
   }
-  root.Rotulo = { leer, convertir, TIPOS, normPlano, excelSerial, fechaTexto, revPrevista };
+  root.Rotulo = { limpiarNombre, leer, convertir, TIPOS, normPlano, excelSerial, fechaTexto, revPrevista };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 window.__KIT__={"sheetXml": "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:x14ac=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac\" xmlns:xr=\"http://schemas.microsoft.com/office/spreadsheetml/2014/revision\" xmlns:xr2=\"http://schemas.microsoft.com/office/spreadsheetml/2015/revision2\" xmlns:xr3=\"http://schemas.microsoft.com/office/spreadsheetml/2016/revision3\" mc:Ignorable=\"x14ac xr xr2 xr3\" xr:uid=\"{00000000-0001-0000-0000-000000000000}\"><sheetPr><tabColor theme=\"5\" tint=\"0.39997558519241921\"/><pageSetUpPr fitToPage=\"1\"/><\/sheetPr><dimension ref=\"A1:N68\"/><sheetViews><sheetView zoomScale=\"70\" zoomScaleNormal=\"70\" workbookViewId=\"0\"/><\/sheetViews><sheetFormatPr baseColWidth=\"10\" defaultColWidth=\"11.453125\" defaultRowHeight=\"13\" x14ac:dyDescent=\"0.3\"/><cols><col min=\"1\" max=\"1\" width=\"3.90625\" style=\"8\" customWidth=\"1\"/><col min=\"2\" max=\"5\" width=\"9.6328125\" style=\"8\" customWidth=\"1\"/><col min=\"6\" max=\"6\" width=\"9.453125\" style=\"8\" customWidth=\"1\"/><col min=\"7\" max=\"7\" width=\"16.90625\" style=\"8\" customWidth=\"1\"/><col min=\"8\" max=\"8\" width=\"16.6328125\" style=\"8\" customWidth=\"1\"/><col min=\"9\" max=\"9\" width=\"8.453125\" style=\"8\" customWidth=\"1\"/><col min=\"10\" max=\"10\" width=\"16.08984375\" style=\"8\" customWidth=\"1\"/><col min=\"11\" max=\"11\" width=\"6.453125\" style=\"8\" customWidth=\"1\"/><col min=\"12\" max=\"12\" width=\"3.08984375\" style=\"8\" customWidth=\"1\"/><col min=\"13\" max=\"16384\" width=\"11.453125\" style=\"8\"/><\/cols><sheetData><row r=\"1\" spans=\"1:12\" s=\"9\" customFormat=\"1\" ht=\"18\" thickBot=\"1\" x14ac:dyDescent=\"0.4\"><c r=\"A1\" s=\"50\" t=\"inlineStr\"><is><t xml:space=\"preserve\">PLANOS DE REFERENCIA<\/t><\/is><\/c><c r=\"B1\" s=\"51\"/><c r=\"C1\" s=\"51\"/><c r=\"D1\" s=\"51\"/><c r=\"E1\" s=\"51\"/><c r=\"F1\" s=\"51\"/><c r=\"G1\" s=\"51\"/><c r=\"H1\" s=\"51\"/><c r=\"I1\" s=\"51\"/><c r=\"J1\" s=\"51\"/><c r=\"K1\" s=\"51\"/><c r=\"L1\" s=\"52\"/><\/row><row r=\"2\" spans=\"1:12\" ht=\"17.149999999999999\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A2\" s=\"53\" t=\"inlineStr\"><is><t xml:space=\"preserve\">PLANO Nº<\/t><\/is><\/c><c r=\"B2\" s=\"54\"/><c r=\"C2\" s=\"53\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TITULO<\/t><\/is><\/c><c r=\"D2\" s=\"55\"/><c r=\"E2\" s=\"55\"/><c r=\"F2\" s=\"55\"/><c r=\"G2\" s=\"55\"/><c r=\"H2\" s=\"55\"/><c r=\"I2\" s=\"55\"/><c r=\"J2\" s=\"55\"/><c r=\"K2\" s=\"55\"/><c r=\"L2\" s=\"54\"/><\/row><row r=\"3\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A3\" s=\"56\"/><c r=\"B3\" s=\"57\"/><c r=\"C3\" s=\"58\"/><c r=\"D3\" s=\"59\"/><c r=\"E3\" s=\"59\"/><c r=\"F3\" s=\"60\"/><c r=\"G3\" s=\"61\"/><c r=\"H3\" s=\"61\"/><c r=\"I3\" s=\"61\"/><c r=\"J3\" s=\"61\"/><c r=\"K3\" s=\"62\"/><c r=\"L3\" s=\"63\"/><\/row><row r=\"4\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A4\" s=\"64\"/><c r=\"B4\" s=\"65\"/><c r=\"C4\" s=\"66\"/><c r=\"D4\" s=\"47\"/><c r=\"E4\" s=\"47\"/><c r=\"F4\" s=\"59\"/><c r=\"G4\" s=\"10\"/><c r=\"H4\" s=\"10\"/><c r=\"I4\" s=\"10\"/><c r=\"J4\" s=\"10\"/><c r=\"K4\" s=\"10\"/><c r=\"L4\" s=\"11\"/><\/row><row r=\"5\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A5\" s=\"64\"/><c r=\"B5\" s=\"65\"/><c r=\"C5\" s=\"66\"/><c r=\"D5\" s=\"47\"/><c r=\"E5\" s=\"47\"/><c r=\"F5\" s=\"59\"/><c r=\"G5\" s=\"10\"/><c r=\"H5\" s=\"10\"/><c r=\"I5\" s=\"10\"/><c r=\"J5\" s=\"10\"/><c r=\"K5\" s=\"10\"/><c r=\"L5\" s=\"11\"/><\/row><row r=\"6\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A6\" s=\"64\"/><c r=\"B6\" s=\"67\"/><c r=\"C6\" s=\"68\"/><c r=\"D6\" s=\"46\"/><c r=\"E6\" s=\"46\"/><c r=\"F6\" s=\"69\"/><c r=\"G6\" s=\"70\"/><c r=\"H6\" s=\"70\"/><c r=\"I6\" s=\"70\"/><c r=\"J6\" s=\"70\"/><c r=\"K6\" s=\"70\"/><c r=\"L6\" s=\"11\"/><\/row><row r=\"7\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A7\" s=\"71\"/><c r=\"B7\" s=\"72\"/><c r=\"C7\" s=\"71\"/><c r=\"D7\" s=\"73\"/><c r=\"E7\" s=\"73\"/><c r=\"F7\" s=\"74\"/><c r=\"G7\" s=\"75\"/><c r=\"H7\" s=\"75\"/><c r=\"I7\" s=\"75\"/><c r=\"J7\" s=\"75\"/><c r=\"K7\" s=\"75\"/><c r=\"L7\" s=\"23\"/><\/row><row r=\"8\" spans=\"1:12\" s=\"9\" customFormat=\"1\" ht=\"18\" thickBot=\"1\" x14ac:dyDescent=\"0.4\"><c r=\"A8\" s=\"76\" t=\"inlineStr\"><is><t xml:space=\"preserve\">ABREVIATURA DESTINO DE CABLES<\/t><\/is><\/c><c r=\"B8\" s=\"77\"/><c r=\"C8\" s=\"77\"/><c r=\"D8\" s=\"77\"/><c r=\"E8\" s=\"77\"/><c r=\"F8\" s=\"77\"/><c r=\"G8\" s=\"77\"/><c r=\"H8\" s=\"77\"/><c r=\"I8\" s=\"77\"/><c r=\"J8\" s=\"77\"/><c r=\"K8\" s=\"77\"/><c r=\"L8\" s=\"78\"/><\/row><row r=\"9\" spans=\"1:12\" ht=\"17.149999999999999\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A9\" s=\"53\" t=\"inlineStr\"><is><t xml:space=\"preserve\">CODIGO<\/t><\/is><\/c><c r=\"B9\" s=\"54\"/><c r=\"C9\" s=\"53\" t=\"inlineStr\"><is><t xml:space=\"preserve\">DENOMINACION<\/t><\/is><\/c><c r=\"D9\" s=\"55\"/><c r=\"E9\" s=\"55\"/><c r=\"F9\" s=\"55\"/><c r=\"G9\" s=\"55\"/><c r=\"H9\" s=\"55\"/><c r=\"I9\" s=\"55\"/><c r=\"J9\" s=\"55\"/><c r=\"K9\" s=\"55\"/><c r=\"L9\" s=\"54\"/><\/row><row r=\"10\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A10\" s=\"79\" t=\"inlineStr\"><is><t xml:space=\"preserve\">CMT<\/t><\/is><\/c><c r=\"B10\" s=\"80\"/><c r=\"C10\" s=\"81\" t=\"inlineStr\"><is><t xml:space=\"preserve\">CELDA DE MEDIA TENSION<\/t><\/is><\/c><c r=\"D10\" s=\"81\"/><c r=\"E10\" s=\"81\"/><c r=\"F10\" s=\"82\"/><c r=\"G10\" s=\"82\"/><c r=\"H10\" s=\"82\"/><c r=\"I10\" s=\"82\"/><c r=\"J10\" s=\"82\"/><c r=\"K10\" s=\"82\"/><c r=\"L10\" s=\"83\"/><\/row><row r=\"11\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A11\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">GAL<\/t><\/is><\/c><c r=\"B11\" s=\"85\"/><c r=\"C11\" s=\"10\" t=\"inlineStr\"><is><t xml:space=\"preserve\">GABINETE DE ALARMAS<\/t><\/is><\/c><c r=\"D11\" s=\"10\"/><c r=\"E11\" s=\"10\"/><c r=\"F11\" s=\"10\"/><c r=\"G11\" s=\"10\"/><c r=\"H11\" s=\"10\"/><c r=\"I11\" s=\"10\"/><c r=\"J11\" s=\"10\"/><c r=\"K11\" s=\"10\"/><c r=\"L11\" s=\"11\"/><\/row><row r=\"12\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A12\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">GIM<\/t><\/is><\/c><c r=\"B12\" s=\"85\"/><c r=\"C12\" s=\"10\" t=\"inlineStr\"><is><t xml:space=\"preserve\">GABINETE INTERMEDIARIO DE MEDIDAS<\/t><\/is><\/c><c r=\"D12\" s=\"10\"/><c r=\"E12\" s=\"10\"/><c r=\"F12\" s=\"10\"/><c r=\"G12\" s=\"10\"/><c r=\"H12\" s=\"10\"/><c r=\"I12\" s=\"10\"/><c r=\"J12\" s=\"10\"/><c r=\"K12\" s=\"10\"/><c r=\"L12\" s=\"11\"/><\/row><row r=\"13\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A13\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">GIR<\/t><\/is><\/c><c r=\"B13\" s=\"85\"/><c r=\"C13\" s=\"10\" t=\"inlineStr\"><is><t xml:space=\"preserve\">GABINETE INTERMEDIARIO DE RELES<\/t><\/is><\/c><c r=\"D13\" s=\"10\"/><c r=\"E13\" s=\"10\"/><c r=\"F13\" s=\"10\"/><c r=\"G13\" s=\"10\"/><c r=\"H13\" s=\"10\"/><c r=\"I13\" s=\"10\"/><c r=\"J13\" s=\"10\"/><c r=\"K13\" s=\"10\"/><c r=\"L13\" s=\"11\"/><\/row><row r=\"14\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A14\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TM<\/t><\/is><\/c><c r=\"B14\" s=\"85\"/><c r=\"C14\" s=\"10\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TABLERO DE MANIOBRA<\/t><\/is><\/c><c r=\"D14\" s=\"10\"/><c r=\"E14\" s=\"10\"/><c r=\"F14\" s=\"10\"/><c r=\"G14\" s=\"10\"/><c r=\"H14\" s=\"10\"/><c r=\"I14\" s=\"10\"/><c r=\"J14\" s=\"10\"/><c r=\"K14\" s=\"10\"/><c r=\"L14\" s=\"11\"/><\/row><row r=\"15\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A15\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TI<\/t><\/is><\/c><c r=\"B15\" s=\"85\"/><c r=\"C15\" s=\"10\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TABLERO INTERMEDIARIO<\/t><\/is><\/c><c r=\"D15\" s=\"10\"/><c r=\"E15\" s=\"10\"/><c r=\"F15\" s=\"10\"/><c r=\"G15\" s=\"10\"/><c r=\"H15\" s=\"10\"/><c r=\"I15\" s=\"10\"/><c r=\"J15\" s=\"10\"/><c r=\"K15\" s=\"10\"/><c r=\"L15\" s=\"11\"/><\/row><row r=\"16\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A16\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TP<\/t><\/is><\/c><c r=\"B16\" s=\"85\"/><c r=\"C16\" s=\"10\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TABLERO DE PROTECCIONES<\/t><\/is><\/c><c r=\"D16\" s=\"10\"/><c r=\"E16\" s=\"10\"/><c r=\"F16\" s=\"10\"/><c r=\"G16\" s=\"10\"/><c r=\"H16\" s=\"10\"/><c r=\"I16\" s=\"10\"/><c r=\"J16\" s=\"10\"/><c r=\"K16\" s=\"10\"/><c r=\"L16\" s=\"11\"/><\/row><row r=\"17\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A17\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TTP<\/t><\/is><\/c><c r=\"B17\" s=\"85\"/><c r=\"C17\" s=\"10\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TABLERO DE TELEPROTECCION Y TELEENCLAVAMIENTO<\/t><\/is><\/c><c r=\"D17\" s=\"10\"/><c r=\"E17\" s=\"10\"/><c r=\"F17\" s=\"10\"/><c r=\"G17\" s=\"10\"/><c r=\"H17\" s=\"10\"/><c r=\"I17\" s=\"10\"/><c r=\"J17\" s=\"10\"/><c r=\"K17\" s=\"10\"/><c r=\"L17\" s=\"11\"/><\/row><row r=\"18\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A18\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TSI<\/t><\/is><\/c><c r=\"B18\" s=\"85\"/><c r=\"C18\" s=\"10\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TABLERO DE SERVICIOS INTERNOS<\/t><\/is><\/c><c r=\"D18\" s=\"10\"/><c r=\"E18\" s=\"10\"/><c r=\"F18\" s=\"10\"/><c r=\"G18\" s=\"10\"/><c r=\"H18\" s=\"10\"/><c r=\"I18\" s=\"10\"/><c r=\"J18\" s=\"10\"/><c r=\"K18\" s=\"10\"/><c r=\"L18\" s=\"11\"/><\/row><row r=\"19\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A19\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TCP<\/t><\/is><\/c><c r=\"B19\" s=\"85\"/><c r=\"C19\" s=\"10\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TABLERO DE CABLES PILOTOS<\/t><\/is><\/c><c r=\"D19\" s=\"10\"/><c r=\"E19\" s=\"10\"/><c r=\"F19\" s=\"10\"/><c r=\"G19\" s=\"10\"/><c r=\"H19\" s=\"10\"/><c r=\"I19\" s=\"10\"/><c r=\"J19\" s=\"10\"/><c r=\"K19\" s=\"10\"/><c r=\"L19\" s=\"11\"/><\/row><row r=\"20\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A20\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TCT<\/t><\/is><\/c><c r=\"B20\" s=\"85\"/><c r=\"C20\" s=\"21\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TABLERO DE COMANDO Y TELECONTROL<\/t><\/is><\/c><c r=\"D20\" s=\"10\"/><c r=\"E20\" s=\"10\"/><c r=\"F20\" s=\"10\"/><c r=\"G20\" s=\"10\"/><c r=\"H20\" s=\"10\"/><c r=\"I20\" s=\"10\"/><c r=\"J20\" s=\"10\"/><c r=\"K20\" s=\"10\"/><c r=\"L20\" s=\"11\"/><\/row><row r=\"21\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A21\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TAS<\/t><\/is><\/c><c r=\"B21\" s=\"85\"/><c r=\"C21\" s=\"10\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TABLERO DE ALIMENTACION SEGURA<\/t><\/is><\/c><c r=\"D21\" s=\"10\"/><c r=\"E21\" s=\"10\"/><c r=\"F21\" s=\"10\"/><c r=\"G21\" s=\"10\"/><c r=\"H21\" s=\"10\"/><c r=\"I21\" s=\"10\"/><c r=\"J21\" s=\"10\"/><c r=\"K21\" s=\"10\"/><c r=\"L21\" s=\"11\"/><\/row><row r=\"22\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A22\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">API<\/t><\/is><\/c><c r=\"B22\" s=\"85\"/><c r=\"C22\" s=\"86\" t=\"inlineStr\"><is><t xml:space=\"preserve\">ARMARIO PLAYA INTEMPERIE<\/t><\/is><\/c><c r=\"D22\" s=\"86\"/><c r=\"E22\" s=\"86\"/><c r=\"F22\" s=\"10\"/><c r=\"G22\" s=\"10\"/><c r=\"H22\" s=\"10\"/><c r=\"I22\" s=\"10\"/><c r=\"J22\" s=\"10\"/><c r=\"K22\" s=\"10\"/><c r=\"L22\" s=\"11\"/><\/row><row r=\"23\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A23\" s=\"84\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TTS<\/t><\/is><\/c><c r=\"B23\" s=\"85\"/><c r=\"C23\" s=\"81\" t=\"inlineStr\"><is><t xml:space=\"preserve\">TABLERO TELESERVICIO <\/t><\/is><\/c><c r=\"D23\" s=\"81\"/><c r=\"E23\" s=\"81\"/><c r=\"F23\" s=\"10\"/><c r=\"G23\" s=\"10\"/><c r=\"H23\" s=\"10\"/><c r=\"I23\" s=\"10\"/><c r=\"J23\" s=\"10\"/><c r=\"K23\" s=\"10\"/><c r=\"L23\" s=\"11\"/><\/row><row r=\"24\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A24\" s=\"84\"/><c r=\"B24\" s=\"85\"/><c r=\"C24\" s=\"87\"/><c r=\"D24\" s=\"86\"/><c r=\"E24\" s=\"86\"/><c r=\"F24\" s=\"10\"/><c r=\"G24\" s=\"10\"/><c r=\"H24\" s=\"10\"/><c r=\"I24\" s=\"10\"/><c r=\"J24\" s=\"10\"/><c r=\"K24\" s=\"10\"/><c r=\"L24\" s=\"11\"/><\/row><row r=\"25\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A25\" s=\"88\"/><c r=\"B25\" s=\"89\"/><c r=\"C25\" s=\"88\"/><c r=\"D25\" s=\"89\"/><c r=\"E25\" s=\"89\"/><c r=\"F25\" s=\"22\"/><c r=\"G25\" s=\"22\"/><c r=\"H25\" s=\"22\"/><c r=\"I25\" s=\"22\"/><c r=\"J25\" s=\"22\"/><c r=\"K25\" s=\"22\"/><c r=\"L25\" s=\"23\"/><\/row><row r=\"26\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A26\" s=\"146\"><v>4<\/v><\/c><c r=\"B26\" s=\"147\"/><c r=\"C26\" s=\"147\"/><c r=\"D26\" s=\"147\"/><c r=\"E26\" s=\"148\"/><c r=\"F26\" s=\"90\"/><c r=\"G26\" s=\"91\"/><c r=\"H26\" s=\"91\"/><c r=\"I26\" s=\"91\"/><c r=\"J26\" s=\"91\"/><c r=\"K26\" s=\"91\"/><c r=\"L26\" s=\"144\"/><\/row><row r=\"27\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A27\" s=\"146\"><v>3<\/v><\/c><c r=\"B27\" s=\"147\"/><c r=\"C27\" s=\"147\"/><c r=\"D27\" s=\"147\"/><c r=\"E27\" s=\"148\"/><c r=\"F27\" s=\"90\"/><c r=\"G27\" s=\"91\"/><c r=\"H27\" s=\"91\"/><c r=\"I27\" s=\"91\"/><c r=\"J27\" s=\"91\"/><c r=\"K27\" s=\"91\"/><c r=\"L27\" s=\"145\"/><\/row><row r=\"28\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A28\" s=\"218\"><v>2<\/v><\/c><c r=\"B28\" s=\"219\"/><c r=\"C28\" s=\"219\"/><c r=\"D28\" s=\"219\"/><c r=\"E28\" s=\"220\"/><c r=\"F28\" s=\"221\"/><c r=\"G28\" s=\"222\"/><c r=\"H28\" s=\"222\"/><c r=\"I28\" s=\"222\"/><c r=\"J28\" s=\"222\"/><c r=\"K28\" s=\"222\"/><c r=\"L28\" s=\"223\"/><\/row><row r=\"29\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A29\" s=\"218\"><v>1<\/v><\/c><c r=\"B29\" s=\"219\"/><c r=\"C29\" s=\"219\"/><c r=\"D29\" s=\"219\"/><c r=\"E29\" s=\"220\"/><c r=\"F29\" s=\"221\"/><c r=\"G29\" s=\"222\"/><c r=\"H29\" s=\"222\"/><c r=\"I29\" s=\"222\"/><c r=\"J29\" s=\"222\"/><c r=\"K29\" s=\"222\"/><c r=\"L29\" s=\"223\"/><\/row><row r=\"30\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A30\" s=\"92\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Mod.<\/t><\/is><\/c><c r=\"B30\" s=\"93\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Dibujó<\/t><\/is><\/c><c r=\"C30\" s=\"93\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Revisó<\/t><\/is><\/c><c r=\"D30\" s=\"94\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Aprobó<\/t><\/is><\/c><c r=\"E30\" s=\"95\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Fecha<\/t><\/is><\/c><c r=\"F30\" s=\"152\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Motivo<\/t><\/is><\/c><c r=\"G30\" s=\"153\"/><c r=\"H30\" s=\"153\"/><c r=\"I30\" s=\"153\"/><c r=\"J30\" s=\"153\"/><c r=\"K30\" s=\"153\"/><c r=\"L30\" s=\"154\"/><\/row><row r=\"31\" spans=\"1:12\" ht=\"17.149999999999999\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A31\" s=\"155\"/><c r=\"B31\" s=\"156\"/><c r=\"C31\" s=\"156\"/><c r=\"D31\" s=\"156\"/><c r=\"E31\" s=\"157\"/><c r=\"F31\" s=\"164\" t=\"inlineStr\"><is><t xml:space=\"preserve\">OBRA<\/t><\/is><\/c><c r=\"G31\" s=\"165\"/><c r=\"H31\" s=\"165\"/><c r=\"I31\" s=\"164\" t=\"inlineStr\"><is><t xml:space=\"preserve\">CONTRATO<\/t><\/is><\/c><c r=\"J31\" s=\"165\"/><c r=\"K31\" s=\"165\"/><c r=\"L31\" s=\"166\"/><\/row><row r=\"32\" spans=\"1:12\" s=\"9\" customFormat=\"1\" ht=\"17\" thickBot=\"1\" x14ac:dyDescent=\"0.4\"><c r=\"A32\" s=\"158\"/><c r=\"B32\" s=\"159\"/><c r=\"C32\" s=\"159\"/><c r=\"D32\" s=\"159\"/><c r=\"E32\" s=\"160\"/><c r=\"F32\" s=\"167\"/><c r=\"G32\" s=\"168\"/><c r=\"H32\" s=\"168\"/><c r=\"I32\" s=\"177\"/><c r=\"J32\" s=\"168\"/><c r=\"K32\" s=\"168\"/><c r=\"L32\" s=\"178\"/><\/row><row r=\"33\" spans=\"1:12\" s=\"9\" customFormat=\"1\" ht=\"12.75\" customHeight=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A33\" s=\"158\"/><c r=\"B33\" s=\"159\"/><c r=\"C33\" s=\"159\"/><c r=\"D33\" s=\"159\"/><c r=\"E33\" s=\"160\"/><c r=\"F33\" s=\"164\" t=\"inlineStr\"><is><t xml:space=\"preserve\">SUPERVISOR DE PROYECTO DE EDENOR<\/t><\/is><\/c><c r=\"G33\" s=\"165\"/><c r=\"H33\" s=\"165\"/><c r=\"I33\" s=\"164\" t=\"inlineStr\"><is><t xml:space=\"preserve\">JEFE DE PROYECTOS DE EDENOR<\/t><\/is><\/c><c r=\"J33\" s=\"165\"/><c r=\"K33\" s=\"165\"/><c r=\"L33\" s=\"166\"/><\/row><row r=\"34\" spans=\"1:12\" ht=\"12\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A34\" s=\"158\"/><c r=\"B34\" s=\"159\"/><c r=\"C34\" s=\"159\"/><c r=\"D34\" s=\"159\"/><c r=\"E34\" s=\"160\"/><c r=\"F34\" s=\"96\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Nombre:<\/t><\/is><\/c><c r=\"G34\" s=\"169\"/><c r=\"H34\" s=\"170\"/><c r=\"I34\" s=\"96\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Nombre:<\/t><\/is><\/c><c r=\"J34\" s=\"171\"/><c r=\"K34\" s=\"172\"/><c r=\"L34\" s=\"173\"/><\/row><row r=\"35\" spans=\"1:12\" ht=\"18\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A35\" s=\"158\"/><c r=\"B35\" s=\"159\"/><c r=\"C35\" s=\"159\"/><c r=\"D35\" s=\"159\"/><c r=\"E35\" s=\"160\"/><c r=\"F35\" s=\"97\" t=\"inlineStr\"><is><t xml:space=\"preserve\">email:<\/t><\/is><\/c><c r=\"G35\" s=\"174\"/><c r=\"H35\" s=\"175\"/><c r=\"I35\" s=\"98\" t=\"inlineStr\"><is><t xml:space=\"preserve\">email:<\/t><\/is><\/c><c r=\"J35\" s=\"174\"/><c r=\"K35\" s=\"176\"/><c r=\"L35\" s=\"175\"/><\/row><row r=\"36\" spans=\"1:12\" ht=\"16.25\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A36\" s=\"161\"/><c r=\"B36\" s=\"162\"/><c r=\"C36\" s=\"162\"/><c r=\"D36\" s=\"162\"/><c r=\"E36\" s=\"163\"/><c r=\"F36\" s=\"99\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Int.<\/t><\/is><\/c><c r=\"G36\" s=\"179\"/><c r=\"H36\" s=\"180\"/><c r=\"I36\" s=\"99\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Int.<\/t><\/is><\/c><c r=\"J36\" s=\"181\"/><c r=\"K36\" s=\"182\"/><c r=\"L36\" s=\"183\"/><\/row><row r=\"37\" spans=\"1:12\" ht=\"17.149999999999999\" customHeight=\"1\" x14ac:dyDescent=\"0.4\"><c r=\"A37\" s=\"18\"/><c r=\"B37\" s=\"100\"/><c r=\"C37\" s=\"101\"/><c r=\"D37\" s=\"102\"/><c r=\"E37\" s=\"103\"/><c r=\"F37\" s=\"101\"/><c r=\"G37\" s=\"104\"/><c r=\"H37\" s=\"104\"/><c r=\"I37\" s=\"101\"/><c r=\"J37\" s=\"46\"/><c r=\"K37\" s=\"46\"/><c r=\"L37\" s=\"49\"/><\/row><row r=\"38\" spans=\"1:12\" ht=\"14.4\" customHeight=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A38\" s=\"45\"/><c r=\"B38\" s=\"46\"/><c r=\"C38\" s=\"70\"/><c r=\"D38\" s=\"46\"/><c r=\"E38\" s=\"46\"/><c r=\"F38\" s=\"105\"/><c r=\"G38\" s=\"46\"/><c r=\"H38\" s=\"46\"/><c r=\"I38\" s=\"46\"/><c r=\"J38\" s=\"46\"/><c r=\"K38\" s=\"46\"/><c r=\"L38\" s=\"49\"/><\/row><row r=\"39\" spans=\"1:12\" ht=\"14.4\" customHeight=\"1\" x14ac:dyDescent=\"0.4\"><c r=\"A39\" s=\"106\"/><c r=\"B39\" s=\"107\"/><c r=\"C39\" s=\"77\"/><c r=\"D39\" s=\"77\"/><c r=\"E39\" s=\"77\"/><c r=\"F39\" s=\"77\"/><c r=\"G39\" s=\"77\"/><c r=\"H39\" s=\"77\"/><c r=\"I39\" s=\"77\"/><c r=\"J39\" s=\"77\"/><c r=\"K39\" s=\"77\"/><c r=\"L39\" s=\"108\"/><\/row><row r=\"40\" spans=\"1:12\" ht=\"14.4\" customHeight=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A40\" s=\"76\"/><c r=\"B40\" s=\"77\"/><c r=\"C40\" s=\"77\"/><c r=\"D40\" s=\"77\"/><c r=\"E40\" s=\"77\"/><c r=\"F40\" s=\"77\"/><c r=\"G40\" s=\"77\"/><c r=\"H40\" s=\"77\"/><c r=\"I40\" s=\"77\"/><c r=\"J40\" s=\"77\"/><c r=\"K40\" s=\"77\"/><c r=\"L40\" s=\"108\"/><\/row><row r=\"41\" spans=\"1:12\" ht=\"14.4\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A41\" s=\"45\"/><c r=\"B41\" s=\"46\"/><c r=\"C41\" s=\"70\"/><c r=\"D41\" s=\"69\"/><c r=\"E41\" s=\"69\"/><c r=\"F41\" s=\"101\"/><c r=\"G41\" s=\"101\"/><c r=\"H41\" s=\"101\"/><c r=\"I41\" s=\"151\"/><c r=\"J41\" s=\"151\"/><c r=\"K41\" s=\"46\"/><c r=\"L41\" s=\"49\"/><\/row><row r=\"42\" spans=\"1:12\" ht=\"14.4\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A42\" s=\"45\"/><c r=\"B42\" s=\"109\"/><c r=\"C42\" s=\"70\"/><c r=\"D42\" s=\"102\"/><c r=\"E42\" s=\"110\"/><c r=\"F42\" s=\"110\"/><c r=\"G42\" s=\"110\"/><c r=\"H42\" s=\"110\"/><c r=\"I42\" s=\"151\"/><c r=\"J42\" s=\"151\"/><c r=\"K42\" s=\"69\"/><c r=\"L42\" s=\"49\"/><\/row><row r=\"43\" spans=\"1:12\" ht=\"14.4\" customHeight=\"1\" x14ac:dyDescent=\"0.4\"><c r=\"A43\" s=\"45\"/><c r=\"B43\" s=\"46\"/><c r=\"C43\" s=\"70\"/><c r=\"D43\" s=\"102\"/><c r=\"E43\" s=\"103\"/><c r=\"F43\" s=\"103\"/><c r=\"G43\" s=\"103\"/><c r=\"H43\" s=\"103\"/><c r=\"I43\" s=\"151\"/><c r=\"J43\" s=\"151\"/><c r=\"K43\" s=\"46\"/><c r=\"L43\" s=\"49\"/><\/row><row r=\"44\" spans=\"1:12\" ht=\"14.4\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A44\" s=\"45\"/><c r=\"B44\" s=\"46\"/><c r=\"C44\" s=\"111\"/><c r=\"D44\" s=\"69\"/><c r=\"E44\" s=\"46\"/><c r=\"F44\" s=\"46\"/><c r=\"G44\" s=\"46\"/><c r=\"H44\" s=\"46\"/><c r=\"I44\" s=\"151\"/><c r=\"J44\" s=\"151\"/><c r=\"K44\" s=\"46\"/><c r=\"L44\" s=\"49\"/><\/row><row r=\"45\" spans=\"1:12\" ht=\"14.4\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A45\" s=\"45\"/><c r=\"B45\" s=\"46\"/><c r=\"C45\" s=\"111\"/><c r=\"D45\" s=\"69\"/><c r=\"E45\" s=\"46\"/><c r=\"F45\" s=\"46\"/><c r=\"G45\" s=\"46\"/><c r=\"H45\" s=\"46\"/><c r=\"I45\" s=\"151\"/><c r=\"J45\" s=\"151\"/><c r=\"K45\" s=\"46\"/><c r=\"L45\" s=\"49\"/><\/row><row r=\"46\" spans=\"1:12\" ht=\"17.149999999999999\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A46\" s=\"45\"/><c r=\"B46\" s=\"46\"/><c r=\"C46\" s=\"46\"/><c r=\"D46\" s=\"46\"/><c r=\"E46\" s=\"46\"/><c r=\"F46\" s=\"46\"/><c r=\"G46\" s=\"46\"/><c r=\"H46\" s=\"46\"/><c r=\"I46\" s=\"151\"/><c r=\"J46\" s=\"151\"/><c r=\"K46\" s=\"46\"/><c r=\"L46\" s=\"49\"/><\/row><row r=\"47\" spans=\"1:12\" ht=\"17.149999999999999\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A47\" s=\"149\"/><c r=\"B47\" s=\"46\"/><c r=\"C47\" s=\"46\"/><c r=\"D47\" s=\"46\"/><c r=\"E47\" s=\"46\"/><c r=\"F47\" s=\"46\"/><c r=\"G47\" s=\"46\"/><c r=\"H47\" s=\"46\"/><c r=\"I47\" s=\"151\"/><c r=\"J47\" s=\"151\"/><c r=\"K47\" s=\"46\"/><c r=\"L47\" s=\"49\"/><\/row><row r=\"48\" spans=\"1:12\" ht=\"17.149999999999999\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A48\" s=\"149\"/><c r=\"B48\" s=\"46\"/><c r=\"C48\" s=\"46\"/><c r=\"D48\" s=\"46\"/><c r=\"E48\" s=\"46\"/><c r=\"F48\" s=\"46\"/><c r=\"G48\" s=\"46\"/><c r=\"H48\" s=\"46\"/><c r=\"I48\" s=\"46\"/><c r=\"J48\" s=\"46\"/><c r=\"K48\" s=\"46\"/><c r=\"L48\" s=\"49\"/><\/row><row r=\"49\" spans=\"1:12\" ht=\"17.149999999999999\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A49\" s=\"150\"/><c r=\"B49\" s=\"47\"/><c r=\"C49\" s=\"47\"/><c r=\"D49\" s=\"47\"/><c r=\"E49\" s=\"47\"/><c r=\"F49\" s=\"47\"/><c r=\"G49\" s=\"47\"/><c r=\"H49\" s=\"47\"/><c r=\"I49\" s=\"47\"/><c r=\"J49\" s=\"47\"/><c r=\"K49\" s=\"47\"/><c r=\"L49\" s=\"48\"/><\/row><row r=\"50\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A50\" s=\"114\" t=\"inlineStr\"><is><t xml:space=\"preserve\">D<\/t><\/is><\/c><c r=\"B50\" s=\"115\"/><c r=\"C50\" s=\"115\"/><c r=\"D50\" s=\"47\"/><c r=\"E50\" s=\"112\"/><c r=\"F50\" s=\"112\"/><c r=\"G50\" s=\"113\"/><c r=\"H50\" s=\"47\"/><c r=\"I50\" s=\"47\"/><c r=\"J50\" s=\"47\"/><c r=\"K50\" s=\"47\"/><c r=\"L50\" s=\"48\"/><\/row><row r=\"51\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A51\" s=\"114\" t=\"inlineStr\"><is><t xml:space=\"preserve\">C<\/t><\/is><\/c><c r=\"B51\" s=\"115\"/><c r=\"C51\" s=\"115\"/><c r=\"D51\" s=\"47\"/><c r=\"E51\" s=\"112\"/><c r=\"F51\" s=\"112\"/><c r=\"G51\" s=\"47\"/><c r=\"H51\" s=\"47\"/><c r=\"I51\" s=\"47\"/><c r=\"J51\" s=\"47\"/><c r=\"K51\" s=\"47\"/><c r=\"L51\" s=\"48\"/><\/row><row r=\"52\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A52\" s=\"114\" t=\"inlineStr\"><is><t xml:space=\"preserve\">B<\/t><\/is><\/c><c r=\"B52\" s=\"115\"/><c r=\"C52\" s=\"115\"/><c r=\"D52\" s=\"116\"/><c r=\"E52\" s=\"117\"/><c r=\"F52\" s=\"118\"/><c r=\"G52\" s=\"47\"/><c r=\"H52\" s=\"47\"/><c r=\"I52\" s=\"47\"/><c r=\"J52\" s=\"47\"/><c r=\"K52\" s=\"47\"/><c r=\"L52\" s=\"48\"/><\/row><row r=\"53\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A53\" s=\"114\" t=\"inlineStr\"><is><t xml:space=\"preserve\">A<\/t><\/is><\/c><c r=\"B53\" s=\"115\"/><c r=\"C53\" s=\"119\"/><c r=\"D53\" s=\"116\"/><c r=\"E53\" s=\"117\"/><c r=\"F53\" s=\"120\"/><c r=\"G53\" s=\"47\"/><c r=\"H53\" s=\"47\"/><c r=\"I53\" s=\"47\"/><c r=\"J53\" s=\"47\"/><c r=\"K53\" s=\"47\"/><c r=\"L53\" s=\"49\"/><\/row><row r=\"54\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A54\" s=\"121\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Mod.<\/t><\/is><\/c><c r=\"B54\" s=\"13\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Proyectó<\/t><\/is><\/c><c r=\"C54\" s=\"13\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Revisó<\/t><\/is><\/c><c r=\"D54\" s=\"122\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Aprobó<\/t><\/is><\/c><c r=\"E54\" s=\"123\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Fecha<\/t><\/is><\/c><c r=\"F54\" s=\"123\"/><c r=\"G54\" s=\"124\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Motivo<\/t><\/is><\/c><c r=\"H54\" s=\"24\"/><c r=\"I54\" s=\"24\"/><c r=\"J54\" s=\"25\"/><c r=\"K54\" s=\"25\"/><c r=\"L54\" s=\"26\"/><\/row><row r=\"55\" spans=\"1:12\" ht=\"14.15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A55\" s=\"201\"/><c r=\"B55\" s=\"202\"/><c r=\"C55\" s=\"212\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Nombre<\/t><\/is><\/c><c r=\"D55\" s=\"213\"/><c r=\"E55\" s=\"214\"/><c r=\"F55\" s=\"203\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Fecha<\/t><\/is><\/c><c r=\"G55\" s=\"203\"/><c r=\"H55\" s=\"204\"/><c r=\"I55\" s=\"37\"/><c r=\"J55\" s=\"38\"/><c r=\"K55\" s=\"38\"/><c r=\"L55\" s=\"39\"/><\/row><row r=\"56\" spans=\"1:12\" ht=\"14.15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A56\" s=\"197\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Proyectado :<\/t><\/is><\/c><c r=\"B56\" s=\"198\"/><c r=\"C56\" s=\"199\"/><c r=\"D56\" s=\"215\"/><c r=\"E56\" s=\"200\"/><c r=\"F56\" s=\"190\"/><c r=\"G56\" s=\"191\"/><c r=\"H56\" s=\"192\"/><c r=\"I56\" s=\"40\"/><c r=\"J56\" s=\"125\"/><c r=\"K56\" s=\"125\"/><c r=\"L56\" s=\"41\"/><\/row><row r=\"57\" spans=\"1:12\" ht=\"14.15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A57\" s=\"197\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Revisado :<\/t><\/is><\/c><c r=\"B57\" s=\"198\"/><c r=\"C57\" s=\"193\"/><c r=\"D57\" s=\"216\"/><c r=\"E57\" s=\"194\"/><c r=\"F57\" s=\"190\"/><c r=\"G57\" s=\"191\"/><c r=\"H57\" s=\"192\"/><c r=\"I57\" s=\"40\"/><c r=\"J57\" s=\"125\"/><c r=\"K57\" s=\"125\"/><c r=\"L57\" s=\"41\"/><\/row><row r=\"58\" spans=\"1:12\" s=\"14\" customFormat=\"1\" ht=\"14.15\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.45\"><c r=\"A58\" s=\"195\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Aprobado:<\/t><\/is><\/c><c r=\"B58\" s=\"196\"/><c r=\"C58\" s=\"207\"/><c r=\"D58\" s=\"217\"/><c r=\"E58\" s=\"208\"/><c r=\"F58\" s=\"209\"/><c r=\"G58\" s=\"210\"/><c r=\"H58\" s=\"211\"/><c r=\"I58\" s=\"42\"/><c r=\"J58\" s=\"43\"/><c r=\"K58\" s=\"43\"/><c r=\"L58\" s=\"44\"/><\/row><row r=\"59\" spans=\"1:12\" ht=\"17.25\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A59\" s=\"184\"/><c r=\"B59\" s=\"185\"/><c r=\"C59\" s=\"185\"/><c r=\"D59\" s=\"185\"/><c r=\"E59\" s=\"185\"/><c r=\"F59\" s=\"185\"/><c r=\"G59\" s=\"185\"/><c r=\"H59\" s=\"186\"/><c r=\"I59\" s=\"28\"/><c r=\"J59\" s=\"29\"/><c r=\"K59\" s=\"29\"/><c r=\"L59\" s=\"30\"/><\/row><row r=\"60\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A60\" s=\"187\"/><c r=\"B60\" s=\"188\"/><c r=\"C60\" s=\"188\"/><c r=\"D60\" s=\"188\"/><c r=\"E60\" s=\"188\"/><c r=\"F60\" s=\"188\"/><c r=\"G60\" s=\"188\"/><c r=\"H60\" s=\"189\"/><c r=\"I60\" s=\"31\"/><c r=\"J60\" s=\"126\"/><c r=\"K60\" s=\"126\"/><c r=\"L60\" s=\"30\"/><\/row><row r=\"61\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A61\" s=\"15\"/><c r=\"B61\" s=\"16\"/><c r=\"C61\" s=\"16\"/><c r=\"D61\" s=\"2\"/><c r=\"E61\" s=\"2\"/><c r=\"F61\" s=\"7\"/><c r=\"G61\" s=\"7\"/><c r=\"H61\" s=\"27\"/><c r=\"I61\" s=\"31\"/><c r=\"J61\" s=\"126\"/><c r=\"K61\" s=\"126\"/><c r=\"L61\" s=\"30\"/><\/row><row r=\"62\" spans=\"1:12\" ht=\"14.4\" customHeight=\"1\" x14ac:dyDescent=\"0.3\"><c r=\"A62\" s=\"17\"/><c r=\"B62\" s=\"127\"/><c r=\"C62\" s=\"127\"/><c r=\"D62\" s=\"128\"/><c r=\"E62\" s=\"128\"/><c r=\"F62\" s=\"70\"/><c r=\"G62\" s=\"70\"/><c r=\"H62\" s=\"12\"/><c r=\"I62\" s=\"32\"/><c r=\"J62\" s=\"129\"/><c r=\"K62\" s=\"129\"/><c r=\"L62\" s=\"33\"/><\/row><row r=\"63\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.45\"><c r=\"A63\" s=\"18\"/><c r=\"B63\" s=\"130\" t=\"inlineStr\"><is><t xml:space=\"preserve\">BORNERA : <\/t><\/is><\/c><c r=\"C63\" s=\"101\"/><c r=\"D63\" s=\"224\"/><c r=\"E63\" s=\"1\"/><c r=\"F63\" s=\"130\"/><c r=\"G63\" s=\"131\"/><c r=\"H63\" s=\"132\"/><c r=\"I63\" s=\"34\"/><c r=\"J63\" s=\"35\"/><c r=\"K63\" s=\"35\"/><c r=\"L63\" s=\"36\"/><\/row><row r=\"64\" spans=\"1:12\" ht=\"15\" customHeight=\"1\" x14ac:dyDescent=\"0.4\"><c r=\"A64\" s=\"18\"/><c r=\"B64\" s=\"101\"/><c r=\"C64\" s=\"101\"/><c r=\"D64\" s=\"133\"/><c r=\"E64\" s=\"1\"/><c r=\"F64\" s=\"0\"/><c r=\"G64\" s=\"0\"/><c r=\"H64\" s=\"4\"/><c r=\"I64\" s=\"205\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Plano Nº<\/t><\/is><\/c><c r=\"J64\" s=\"225\"/><c r=\"K64\" s=\"134\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Hoja Nº:<\/t><\/is><\/c><c r=\"L64\" s=\"135\"><v>1<\/v><\/c><\/row><row r=\"65\" spans=\"1:14\" ht=\"15\" customHeight=\"1\" thickBot=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"A65\" s=\"136\"/><c r=\"B65\" s=\"137\"/><c r=\"C65\" s=\"138\"/><c r=\"D65\" s=\"139\"/><c r=\"E65\" s=\"6\"/><c r=\"F65\" s=\"3\"/><c r=\"G65\" s=\"3\"/><c r=\"H65\" s=\"5\"/><c r=\"I65\" s=\"206\"/><c r=\"J65\" s=\"226\"/><c r=\"K65\" s=\"140\" t=\"inlineStr\"><is><t xml:space=\"preserve\">Total:<\/t><\/is><\/c><c r=\"L65\" s=\"141\"><f ca=\"1\">_xlfn.SHEETS()<\/f><v>29<\/v><\/c><\/row><row r=\"66\" spans=\"1:14\" ht=\"14.4\" customHeight=\"1\" x14ac:dyDescent=\"0.35\"><c r=\"F66\" s=\"142\"/><c r=\"G66\" s=\"143\"/><c r=\"H66\" s=\"143\"/><c r=\"I66\" s=\"19\"/><c r=\"J66\" s=\"19\"/><\/row><row r=\"68\" spans=\"1:14\" ht=\"23\" x14ac:dyDescent=\"0.3\"><c r=\"N68\" s=\"20\"/><\/row><\/sheetData><mergeCells count=\"29\"><mergeCell ref=\"A55:B55\"/><mergeCell ref=\"F55:H55\"/><mergeCell ref=\"A56:B56\"/><mergeCell ref=\"I64:I65\"/><mergeCell ref=\"F58:H58\"/><mergeCell ref=\"C55:E55\"/><mergeCell ref=\"C56:E56\"/><mergeCell ref=\"C57:E57\"/><mergeCell ref=\"C58:E58\"/><mergeCell ref=\"J64:J65\"/><mergeCell ref=\"A59:H60\"/><mergeCell ref=\"F56:H56\"/><mergeCell ref=\"F57:H57\"/><mergeCell ref=\"A58:B58\"/><mergeCell ref=\"A57:B57\"/><mergeCell ref=\"F30:L30\"/><mergeCell ref=\"A31:E36\"/><mergeCell ref=\"F31:H31\"/><mergeCell ref=\"I31:L31\"/><mergeCell ref=\"F32:H32\"/><mergeCell ref=\"F33:H33\"/><mergeCell ref=\"I33:L33\"/><mergeCell ref=\"G34:H34\"/><mergeCell ref=\"J34:L34\"/><mergeCell ref=\"G35:H35\"/><mergeCell ref=\"J35:L35\"/><mergeCell ref=\"I32:L32\"/><mergeCell ref=\"G36:H36\"/><mergeCell ref=\"J36:L36\"/><\/mergeCells><printOptions horizontalCentered=\"1\" verticalCentered=\"1\"/><pageMargins left=\"0.78740157480314965\" right=\"0.19685039370078741\" top=\"0.19685039370078741\" bottom=\"0.19685039370078741\" header=\"0\" footer=\"0\"/><pageSetup paperSize=\"9\" scale=\"77\" orientation=\"portrait\"/><headerFooter alignWithMargins=\"0\"/><drawing r:id=\"rId1\"/><\/worksheet>", "drawingXml": "<xdr:wsDr xmlns:xdr=\"http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing\" xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\"><xdr:oneCellAnchor><xdr:from><xdr:col>6<\/xdr:col><xdr:colOff>0<\/xdr:colOff><xdr:row>65<\/xdr:row><xdr:rowOff>60960<\/xdr:rowOff><\/xdr:from><xdr:ext cx=\"3056799\" cy=\"140167\"/><xdr:sp macro=\"\" textlink=\"\"><xdr:nvSpPr><xdr:cNvPr id=\"4\" name=\"Texto 2\"><a:extLst><a:ext uri=\"{FF2B5EF4-FFF2-40B4-BE49-F238E27FC236}\"><a16:creationId xmlns:a16=\"http://schemas.microsoft.com/office/drawing/2014/main\" id=\"{CE233F27-9B6E-4180-B535-43EC4042D7A3}\"/><\/a:ext><\/a:extLst><\/xdr:cNvPr><xdr:cNvSpPr txBox=\"1\"><a:spLocks noChangeArrowheads=\"1\"/><\/xdr:cNvSpPr><\/xdr:nvSpPr><xdr:spPr bwMode=\"auto\"><a:xfrm><a:off x=\"4572000\" y=\"11884660\"/><a:ext cx=\"3056799\" cy=\"140167\"/><\/a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/><\/a:prstGeom><a:solidFill><a:srgbClr val=\"FFFFFF\"/><\/a:solidFill><a:ln w=\"1\"><a:noFill/><a:miter lim=\"800000\"/><a:headEnd/><a:tailEnd/><\/a:ln><\/xdr:spPr><xdr:txBody><a:bodyPr wrap=\"none\" lIns=\"9144\" tIns=\"18288\" rIns=\"0\" bIns=\"18288\" anchor=\"ctr\" upright=\"1\"><a:spAutoFit/><\/a:bodyPr><a:lstStyle/><a:p><a:pPr algn=\"l\" rtl=\"0\"><a:defRPr sz=\"1000\"/><\/a:pPr><a:r><a:rPr lang=\"es-AR\" sz=\"700\" b=\"0\" i=\"0\" u=\"none\" strike=\"noStrike\" baseline=\"0\"><a:solidFill><a:srgbClr val=\"000000\"/><\/a:solidFill><a:latin typeface=\"Arial\"/><a:cs typeface=\"Arial\"/><\/a:rPr><a:t>DOCUMENTO REALIZADO EN EXCEL - NO MODIFICAR MANUALMENTE<\/a:t><\/a:r><\/a:p><\/xdr:txBody><\/xdr:sp><xdr:clientData/><\/xdr:oneCellAnchor><xdr:oneCellAnchor><xdr:from><xdr:col>8<\/xdr:col><xdr:colOff>314325<\/xdr:colOff><xdr:row>54<\/xdr:row><xdr:rowOff>47625<\/xdr:rowOff><\/xdr:from><xdr:ext cx=\"1903730\" cy=\"578523\"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id=\"7\" name=\"Imagen 4\"><a:extLst><a:ext uri=\"{FF2B5EF4-FFF2-40B4-BE49-F238E27FC236}\"><a16:creationId xmlns:a16=\"http://schemas.microsoft.com/office/drawing/2014/main\" id=\"{99A71FF4-5561-497C-B8F2-EBC5DA1BFBAC}\"/><\/a:ext><\/a:extLst><\/xdr:cNvPr><xdr:cNvPicPr><a:picLocks noChangeAspect=\"1\" noChangeArrowheads=\"1\"/><\/xdr:cNvPicPr><\/xdr:nvPicPr><xdr:blipFill><a:blip xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" r:embed=\"rId1\"><a:extLst><a:ext uri=\"{28A0092B-C50C-407E-A947-70E740481C1C}\"><a14:useLocalDpi xmlns:a14=\"http://schemas.microsoft.com/office/drawing/2010/main\" val=\"0\"/><\/a:ext><\/a:extLst><\/a:blip><a:srcRect/><a:stretch><a:fillRect/><\/a:stretch><\/xdr:blipFill><xdr:spPr bwMode=\"auto\"><a:xfrm><a:off x=\"6407150\" y=\"9845675\"/><a:ext cx=\"1903730\" cy=\"578523\"/><\/a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/><\/a:prstGeom><a:noFill/><a:ln><a:noFill/><\/a:ln><a:extLst><a:ext uri=\"{909E8E84-426E-40DD-AFC4-6F175D3DCCD1}\"><a14:hiddenFill xmlns:a14=\"http://schemas.microsoft.com/office/drawing/2010/main\"><a:solidFill><a:srgbClr val=\"FFFFFF\"/><\/a:solidFill><\/a14:hiddenFill><\/a:ext><a:ext uri=\"{91240B29-F687-4F45-9708-019B960494DF}\"><a14:hiddenLine xmlns:a14=\"http://schemas.microsoft.com/office/drawing/2010/main\" w=\"9525\"><a:solidFill><a:srgbClr val=\"000000\"/><\/a:solidFill><a:miter lim=\"800000\"/><a:headEnd/><a:tailEnd/><\/a14:hiddenLine><\/a:ext><\/a:extLst><\/xdr:spPr><\/xdr:pic><xdr:clientData/><\/xdr:oneCellAnchor><xdr:oneCellAnchor><xdr:from><xdr:col>0<\/xdr:col><xdr:colOff>19050<\/xdr:colOff><xdr:row>29<\/xdr:row><xdr:rowOff>104775<\/xdr:rowOff><\/xdr:from><xdr:ext cx=\"2967729\" cy=\"1281393\"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id=\"8\" name=\"Imagen 2\"><a:extLst><a:ext uri=\"{FF2B5EF4-FFF2-40B4-BE49-F238E27FC236}\"><a16:creationId xmlns:a16=\"http://schemas.microsoft.com/office/drawing/2014/main\" id=\"{D90AE9B7-9887-43E0-87C4-98C2DB8C82C8}\"/><\/a:ext><\/a:extLst><\/xdr:cNvPr><xdr:cNvPicPr><a:picLocks noChangeAspect=\"1\" noChangeArrowheads=\"1\"/><\/xdr:cNvPicPr><\/xdr:nvPicPr><xdr:blipFill><a:blip xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" r:embed=\"rId2\"><a:extLst><a:ext uri=\"{28A0092B-C50C-407E-A947-70E740481C1C}\"><a14:useLocalDpi xmlns:a14=\"http://schemas.microsoft.com/office/drawing/2010/main\" val=\"0\"/><\/a:ext><\/a:extLst><\/a:blip><a:srcRect/><a:stretch><a:fillRect/><\/a:stretch><\/xdr:blipFill><xdr:spPr bwMode=\"auto\"><a:xfrm><a:off x=\"19050\" y=\"5756275\"/><a:ext cx=\"2967729\" cy=\"1281393\"/><\/a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/><\/a:prstGeom><a:noFill/><a:ln><a:noFill/><\/a:ln><a:extLst><a:ext uri=\"{909E8E84-426E-40DD-AFC4-6F175D3DCCD1}\"><a14:hiddenFill xmlns:a14=\"http://schemas.microsoft.com/office/drawing/2010/main\"><a:solidFill><a:srgbClr val=\"FFFFFF\"/><\/a:solidFill><\/a14:hiddenFill><\/a:ext><a:ext uri=\"{91240B29-F687-4F45-9708-019B960494DF}\"><a14:hiddenLine xmlns:a14=\"http://schemas.microsoft.com/office/drawing/2010/main\" w=\"9525\"><a:solidFill><a:srgbClr val=\"000000\"/><\/a:solidFill><a:miter lim=\"800000\"/><a:headEnd/><a:tailEnd/><\/a14:hiddenLine><\/a:ext><\/a:extLst><\/xdr:spPr><\/xdr:pic><xdr:clientData/><\/xdr:oneCellAnchor><\/xdr:wsDr>", "media": [{"rid": "rId2", "name": "image2.png", "b64": "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"}, {"rid": "rId1", "name": "image1.png", "b64": "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"}], "styles": {"fonts": ["<font><sz val=\"10\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><sz val=\"10\"/><name val=\"MS Sans Serif\"/><family val=\"2\"/><\/font>", "<font><sz val=\"14\"/><name val=\"MS Sans Serif\"/><family val=\"2\"/><\/font>", "<font><sz val=\"9\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><b/><sz val=\"14\"/><name val=\"MS Sans Serif\"/><family val=\"2\"/><\/font>", "<font><b/><sz val=\"18\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><sz val=\"11\"/><color rgb=\"FF000000\"/><name val=\"Calibri\"/><family val=\"2\"/><scheme val=\"minor\"/><\/font>", "<font><b/><sz val=\"8\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><b/><sz val=\"14\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><sz val=\"14\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><i/><sz val=\"10\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><b/><i/><sz val=\"10\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><b/><sz val=\"10\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><sz val=\"8\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><sz val=\"9\"/><color rgb=\"FF000000\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><b/><sz val=\"16\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><sz val=\"12\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><b/><sz val=\"12\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><sz val=\"12\"/><name val=\"MS Sans Serif\"/><family val=\"2\"/><\/font>", "<font><sz val=\"10\"/><color rgb=\"FF000000\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><b/><i/><sz val=\"14\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><b/><sz val=\"20\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><sz val=\"11\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><u/><sz val=\"11\"/><color rgb=\"FF0000FF\"/><name val=\"Calibri\"/><family val=\"2\"/><scheme val=\"minor\"/><\/font>", "<font><b/><sz val=\"11\"/><name val=\"Arial\"/><family val=\"2\"/><\/font>", "<font><sz val=\"11\"/><color rgb=\"FF000000\"/><name val=\"Calibri\"/><family val=\"2\"/><scheme val=\"minor\"/><\/font>"], "fills": ["<fill><patternFill patternType=\"none\"/><\/fill>", "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFFFFFFF\"/><bgColor indexed=\"64\"/><\/patternFill><\/fill>", "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFDCE6F2\"/><bgColor indexed=\"64\"/><\/patternFill><\/fill>"], "borders": ["<border><left/><right/><top/><bottom/><diagonal/><\/border>", "<border><left/><right/><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom/><diagonal/><\/border>", "<border><left/><right/><top/><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"medium\"><color indexed=\"64\"/><\/right><top/><bottom/><diagonal/><\/border>", "<border><left/><right style=\"medium\"><color indexed=\"64\"/><\/right><top/><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right/><top/><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"medium\"><color indexed=\"64\"/><\/right><top/><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"thin\"><color indexed=\"64\"/><\/right><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right/><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom/><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right/><top/><bottom/><diagonal/><\/border>", "<border><left/><right/><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom/><diagonal/><\/border>", "<border><left/><right/><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"medium\"><color indexed=\"64\"/><\/right><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"medium\"><color indexed=\"64\"/><\/right><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom/><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right/><top/><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right style=\"medium\"><color indexed=\"64\"/><\/right><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right/><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right/><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"medium\"><color indexed=\"64\"/><\/right><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right/><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right/><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right/><top/><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right/><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right/><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"medium\"><color indexed=\"64\"/><\/right><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"medium\"><color indexed=\"64\"/><\/right><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right/><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right style=\"thin\"><color indexed=\"64\"/><\/right><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom/><diagonal/><\/border>", "<border><left/><right style=\"thin\"><color indexed=\"64\"/><\/right><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom/><diagonal/><\/border>", "<border><left style=\"thin\"><color indexed=\"64\"/><\/left><right/><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom/><diagonal/><\/border>", "<border><left style=\"thin\"><color indexed=\"64\"/><\/left><right/><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right style=\"thin\"><color indexed=\"64\"/><\/right><top/><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"thin\"><color indexed=\"64\"/><\/right><top/><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right style=\"thin\"><color indexed=\"64\"/><\/right><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"thin\"><color indexed=\"64\"/><\/left><right/><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"medium\"><color indexed=\"64\"/><\/left><right style=\"thin\"><color indexed=\"64\"/><\/right><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"thin\"><color indexed=\"64\"/><\/left><right/><top/><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"thin\"><color indexed=\"64\"/><\/left><right/><top/><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"thin\"><color indexed=\"64\"/><\/right><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"thin\"><color indexed=\"64\"/><\/left><right style=\"thin\"><color indexed=\"64\"/><\/right><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"medium\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"thin\"><color indexed=\"64\"/><\/left><right style=\"thin\"><color indexed=\"64\"/><\/right><top style=\"thin\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left/><right style=\"thin\"><color indexed=\"64\"/><\/right><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"thin\"><color indexed=\"64\"/><\/left><right style=\"thin\"><color indexed=\"64\"/><\/right><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"thin\"><color indexed=\"64\"/><\/left><right style=\"medium\"><color indexed=\"64\"/><\/right><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>", "<border><left style=\"thin\"><color indexed=\"64\"/><\/left><right/><top style=\"medium\"><color indexed=\"64\"/><\/top><bottom style=\"thin\"><color indexed=\"64\"/><\/bottom><diagonal/><\/border>"], "xfs": ["<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"1\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"3\" xfId=\"0\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"4\" xfId=\"0\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"1\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"1\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>", "<xf numFmtId=\"0\" fontId=\"2\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"6\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"3\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"7\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"4\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"8\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"1\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"9\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"9\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"1\" fillId=\"0\" borderId=\"10\" xfId=\"0\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"5\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"6\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"4\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"12\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"13\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"8\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"1\" borderId=\"1\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"3\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"1\" borderId=\"9\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"7\" fillId=\"1\" borderId=\"9\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"7\" fillId=\"1\" borderId=\"3\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"1\" borderId=\"14\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"1\" borderId=\"2\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"1\" borderId=\"4\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"8\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"1\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"13\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"9\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"3\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"8\" fillId=\"1\" borderId=\"14\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"8\" fillId=\"1\" borderId=\"2\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"8\" fillId=\"1\" borderId=\"4\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"9\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"6\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"3\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"9\" fillId=\"0\" borderId=\"15\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"9\" fillId=\"0\" borderId=\"16\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"9\" fillId=\"0\" borderId=\"13\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"17\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"18\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"16\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"11\" fontId=\"0\" fillId=\"0\" borderId=\"19\" xfId=\"0\" quotePrefix=\"1\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"0\" fillId=\"0\" borderId=\"20\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"0\" fillId=\"0\" borderId=\"21\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"20\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"10\" fillId=\"0\" borderId=\"20\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"11\" fillId=\"0\" borderId=\"20\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"11\" fillId=\"0\" borderId=\"6\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"0\" fillId=\"0\" borderId=\"22\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"0\" fillId=\"0\" borderId=\"21\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"0\" fillId=\"0\" borderId=\"9\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\"/>", "<xf numFmtId=\"49\" fontId=\"0\" fillId=\"0\" borderId=\"23\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"0\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"12\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\"/>", "<xf numFmtId=\"0\" fontId=\"9\" fillId=\"0\" borderId=\"9\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"9\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"9\" fillId=\"0\" borderId=\"4\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"19\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"24\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"6\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"22\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"25\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"21\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"14\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"26\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"27\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"14\" fillId=\"0\" borderId=\"28\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"14\" fillId=\"0\" borderId=\"10\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"14\" fillId=\"0\" borderId=\"29\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"10\" fillId=\"2\" borderId=\"21\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"10\" fillId=\"2\" borderId=\"22\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"10\" fillId=\"2\" borderId=\"22\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"10\" fillId=\"2\" borderId=\"14\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"15\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"8\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"15\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"8\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"16\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"8\" fillId=\"0\" borderId=\"9\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"8\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"9\" fillId=\"0\" borderId=\"3\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"15\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"15\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"12\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"30\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"26\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"31\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"32\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"17\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"17\" fontId=\"0\" fillId=\"0\" borderId=\"30\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"30\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\"/><\/xf>", "<xf numFmtId=\"17\" fontId=\"0\" fillId=\"0\" borderId=\"32\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"30\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"33\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"34\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"1\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"7\" fillId=\"1\" borderId=\"0\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyFill=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"8\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"17\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"17\" fillId=\"0\" borderId=\"3\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"8\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"8\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"13\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"14\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"17\" fontId=\"13\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"14\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"4\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"2\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"18\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"centerContinuous\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"24\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"25\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"35\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"19\" fillId=\"0\" borderId=\"32\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"17\" fontId=\"19\" fillId=\"0\" borderId=\"32\" xfId=\"0\" quotePrefix=\"1\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"9\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"13\" fillId=\"0\" borderId=\"21\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"20\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"34\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"12\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"21\" fillId=\"0\" borderId=\"8\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\" wrapText=\"1\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"21\" fillId=\"0\" borderId=\"1\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\" wrapText=\"1\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"21\" fillId=\"0\" borderId=\"13\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\" wrapText=\"1\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"21\" fillId=\"0\" borderId=\"9\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\" wrapText=\"1\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"21\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\" wrapText=\"1\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"21\" fillId=\"0\" borderId=\"3\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\" wrapText=\"1\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"21\" fillId=\"0\" borderId=\"14\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\" wrapText=\"1\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"21\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\" wrapText=\"1\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"21\" fillId=\"0\" borderId=\"4\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\" wrapText=\"1\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"11\" fillId=\"2\" borderId=\"19\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"11\" fillId=\"2\" borderId=\"20\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"11\" fillId=\"2\" borderId=\"24\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"22\" fillId=\"0\" borderId=\"14\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"22\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"36\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"36\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"5\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"6\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"23\" fillId=\"0\" borderId=\"30\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\" applyProtection=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"25\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"26\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"3\" fontId=\"22\" fillId=\"0\" borderId=\"14\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"22\" fillId=\"0\" borderId=\"4\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"37\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"37\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"4\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"15\" fillId=\"0\" borderId=\"8\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"15\" fillId=\"0\" borderId=\"1\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"15\" fillId=\"0\" borderId=\"13\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"15\" fillId=\"0\" borderId=\"14\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"15\" fillId=\"0\" borderId=\"2\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"15\" fillId=\"0\" borderId=\"4\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"14\" fontId=\"0\" fillId=\"0\" borderId=\"30\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"14\" fontId=\"0\" fillId=\"0\" borderId=\"26\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"14\" fontId=\"0\" fillId=\"0\" borderId=\"25\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"0\" borderId=\"30\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"0\" borderId=\"38\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"33\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"39\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"35\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"40\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"30\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"38\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"0\" borderId=\"19\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"0\" borderId=\"41\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"42\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"43\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"0\" borderId=\"8\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"14\" xfId=\"0\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"34\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"7\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"14\" fontId=\"0\" fillId=\"0\" borderId=\"34\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"14\" fontId=\"0\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"14\" fontId=\"0\" fillId=\"0\" borderId=\"12\" xfId=\"0\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"44\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"20\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"3\" fillId=\"0\" borderId=\"41\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"26\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"7\" fillId=\"0\" borderId=\"26\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"11\" xfId=\"0\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"35\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"19\" fillId=\"1\" borderId=\"32\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"17\" fontId=\"19\" fillId=\"1\" borderId=\"32\" xfId=\"0\" quotePrefix=\"1\" applyNumberFormat=\"1\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"26\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"left\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"5\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"1\" borderId=\"25\" xfId=\"0\" applyFont=\"1\" applyFill=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"0\" fontId=\"24\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"11\" fontId=\"15\" fillId=\"0\" borderId=\"13\" xfId=\"0\" quotePrefix=\"1\" applyNumberFormat=\"1\" applyFont=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>", "<xf numFmtId=\"49\" fontId=\"25\" fillId=\"0\" borderId=\"4\" xfId=\"0\" applyNumberFormat=\"1\" applyBorder=\"1\" applyAlignment=\"1\"><alignment horizontal=\"center\" vertical=\"center\"/><\/xf>"], "numFmts": {}}};
@@ -1327,29 +1605,32 @@ window.__KIT__={"sheetXml": "<worksheet xmlns=\"http://schemas.openxmlformats.or
 
   const tipo = () => document.querySelector('input[name=tipo]:checked').value;
   const TEXTOS = {
-    instalacion: 'La modificación va en la grilla numerada de arriba, pintada de rojo, y la carátula lleva el sello INSTALACIÓN.',
-    retiro: 'La modificación va en la grilla numerada de arriba, pintada de amarillo, y la carátula lleva el sello RETIRO.',
-    traslado: 'La modificación va en la grilla numerada de arriba, pintada de verde, y la carátula lleva el sello TRASLADO.',
-    cao: 'La grilla de arriba queda vacía, se quita el sello y la obra baja a la historia de Edenor como una letra nueva "CONFORME A OBRA - …".',
+    instalacion: 'La modificación va en la grilla numerada de arriba, pintada de rojo, y la carátula lleva los carteles V.P.O. e INSTALACIÓN.',
+    retiro: 'La modificación va en la grilla numerada de arriba, pintada de amarillo, y la carátula lleva los carteles V.P.O. y RETIRO.',
+    traslado: 'La modificación va en la grilla numerada de arriba, pintada de celeste, y la carátula lleva los carteles V.P.O. y TRASLADO.',
+    cao: 'La grilla de arriba queda vacía, se quitan los carteles y la obra baja a la historia de Edenor como una letra nueva "CONFORME A OBRA - …".',
   };
   function vista() {
     const t = tipo();
     $('explica').textContent = TEXTOS[t];
-    $('cond-cao').hidden = t !== 'cao';
+    $('sec-resp').hidden = t === 'cao';
+    $('sec-obra').hidden = t === 'cao';
     const motivo = $('m-motivo').value.trim().toUpperCase();
     $('m-motivo').placeholder = t === 'cao' ? 'Ej.: CONFORME A OBRA - CAMBIO DE INTERRUPTOR' : 'Ej.: CAMBIO DE INTERRUPTOR - VALIDO PARA OBRA';
     const [y, m] = ($('m-fecha').value || '').split('-');
     const fecha = y ? ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][+m - 1] + '-' + y.slice(2) : '';
-    const id = t === 'cao' ? 'letra siguiente' : 'nº siguiente';
-    $('m-id').textContent = t === 'cao' ? 'letra' : 'nº';
+    const revs = [...new Set(planos.filter((p) => p.datos).map((p) => Rotulo.revPrevista(p.datos, t)))];
+    const id = revs.length ? revs.join(' / ') : '—';
+    $('m-id').textContent = id;
+    $('m-id').title = revs.length > 1 ? 'Varía según el plano: cada uno lleva el que le corresponde' : 'Se calcula solo a partir del plano';
     $('vista').textContent = [id, $('m-dibujo').value.toUpperCase(), $('m-reviso').value.toUpperCase(), $('m-aprobo').value.toUpperCase(), fecha, motivo].map((x) => x || '—').join('  |  ');
     const color = { instalacion: 'var(--inst-claro)', retiro: 'var(--ret-claro)', traslado: 'var(--tras-claro)', cao: 'transparent' }[t];
-    for (const el of $('grilla').querySelectorAll('input')) el.style.background = color;
+    for (const el of $('grilla').querySelectorAll('.celda')) el.style.background = el.classList.contains('mod') ? '' : color;
     for (const p of planos) actualizarNombre(p);
     habilitar();
   }
   document.querySelectorAll('input[name=tipo]').forEach((r) => r.addEventListener('change', vista));
-  ['m-dibujo', 'm-reviso', 'm-aprobo', 'm-fecha', 'm-motivo', 'cond'].forEach((k) => $(k).addEventListener('input', vista));
+  ['m-dibujo', 'm-reviso', 'm-aprobo', 'm-fecha', 'm-motivo'].forEach((k) => $(k).addEventListener('input', vista));
   CAMPOS.forEach((k) => $(k).addEventListener('change', guardar));
   ['m-motivo', 'm-dibujo', 'm-reviso', 'm-aprobo'].forEach((k) => $(k).addEventListener('input', (ev) => {
     const el = ev.target, a = el.selectionStart, b = el.selectionEnd;
@@ -1364,10 +1645,26 @@ window.__KIT__={"sheetXml": "<worksheet xmlns=\"http://schemas.openxmlformats.or
   zona.addEventListener('drop', (e) => { e.preventDefault(); zona.classList.remove('encima'); cargar([...e.dataTransfer.files]); });
   $('archivos').addEventListener('change', (e) => { const fs = [...e.target.files]; e.target.value = ''; cargar(fs); });
 
+  function pintarObras() {
+    const cont = $('obras');
+    const con = planos.filter((p) => p.datos);
+    if (!con.length) { cont.innerHTML = '<p class="vacio">Se completa al cargar los planos.</p>'; return; }
+    cont.innerHTML = '';
+    for (const p of con) {
+      const fila = document.createElement('label');
+      fila.className = 'obra-fila';
+      fila.innerHTML = `<span>${esc(p.datos.plano || p.file.name)}</span><input value="${esc(p.datos.obraTexto || '')}" placeholder="No se pudo leer: completala">`;
+      const inp = fila.querySelector('input');
+      inp.classList.toggle('falta', !inp.value.trim());
+      inp.addEventListener('input', () => { p.datos.obraTexto = inp.value; inp.classList.toggle('falta', !inp.value.trim()); habilitar(); });
+      cont.appendChild(fila);
+    }
+  }
+
   async function cargar(files) {
     for (const f of files) {
       const p = { file: f, buf: await f.arrayBuffer() };
-      try { p.datos = await Rotulo.leer(p.buf.slice(0), f.name); } catch (e) { p.error = e.message; }
+      try { p.datos = await Rotulo.leer(p.buf.slice(0), f.name, KIT); } catch (e) { p.error = e.message; }
       planos.push(p);
     }
     generados = [];
@@ -1378,14 +1675,14 @@ window.__KIT__={"sheetXml": "<worksheet xmlns=\"http://schemas.openxmlformats.or
 
   function nombreSalida(p) {
     const d = p.datos; const t = tipo();
-    const cond = t === 'cao' ? $('cond').value : Rotulo.TIPOS[t].cond;
-    const est = t === 'cao' ? 'CAO' : 'VPO';
-    const desc = d.descripcion || ('Born. ' + (d.bornera || ''));
-    return `${d.plano} (${desc}) [rev. ${Rotulo.revPrevista(d, t)}] - ${cond} [${est}].xlsx`;
+    const desc = Rotulo.limpiarNombre(d.descripcion || ('Born. ' + (d.bornera || '')));
+    const rev = Rotulo.revPrevista(d, t);
+    return Rotulo.limpiarNombre(t === 'cao' ? `${d.plano} (${desc}) [rev. ${rev}] [CAO].xlsx` : `${d.plano} (${desc}) [rev. ${rev}] - ${Rotulo.TIPOS[t].cond} [VPO].xlsx`);
   }
   function actualizarNombre(p) { if (p.nodoNombre && p.datos) p.nodoNombre.textContent = nombreSalida(p); }
 
   function pintar() {
+    pintarObras();
     const lista = $('lista');
     lista.innerHTML = '';
     if (!planos.length) lista.innerHTML = '<p class="vacio">Todavía no cargaste planos.</p>';
@@ -1394,7 +1691,7 @@ window.__KIT__={"sheetXml": "<worksheet xmlns=\"http://schemas.openxmlformats.or
       div.className = 'plano';
       const d = p.datos;
       let html = `<div class="tit"><b>${esc(p.file.name)}</b>`;
-      if (d) html += `<span class="chip">${d.formato === 'nuevo' ? 'ya tiene rótulo nuevo' : 'rótulo viejo'}</span><span class="chip">${d.hojas} hojas</span>`;
+      if (d) html += `<span class="chip">${{ nuevo: 'ya tiene rótulo nuevo', 'cao-nuevo': 'CAO con rótulo nuevo', viejo: 'rótulo viejo' }[d.formato]}</span><span class="chip">${d.hojas} hojas</span>`;
       html += `<button class="quitar" data-i="${i}">Quitar</button></div>`;
       if (p.error) html += `<div class="error">${esc(p.error)}</div>`;
       else {
@@ -1404,8 +1701,7 @@ window.__KIT__={"sheetXml": "<worksheet xmlns=\"http://schemas.openxmlformats.or
           <div><label>S.E. Nº</label><input data-k="se" value="${esc(d.se)}"></div>
           <div><label>Bornera</label><input data-k="bornera" value="${esc(d.bornera)}" title="${esc(d.bornera)}"></div>
           <div><label>Descripción en el nombre</label><input data-k="descripcion" value="${esc(d.descripcion)}" title="${esc(d.descripcion)}"></div>
-        </div>
-        <div class="datos"><div><label>Obra (bloque superior)</label><input data-k="obraTexto" value="${esc(d.obraTexto || '')}"></div></div>`;
+        </div>`;
         if (d.avisos?.length) html += `<ul class="avisos">${d.avisos.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>`;
         const hist = d.historia || [];
         const filas = hist.slice().reverse().map((m) => `<tr><td>${esc(/^[a-z]$/.test(m.id) ? m.id.toUpperCase() : m.id)}</td><td>${esc(m.dibujo)}</td><td>${esc(m.reviso)}</td><td>${esc(m.aprobo)}</td><td>${esc(Rotulo.fechaTexto(m.fecha))}</td><td>${esc(m.motivo)}</td></tr>`).join('');
@@ -1429,14 +1725,16 @@ window.__KIT__={"sheetXml": "<worksheet xmlns=\"http://schemas.openxmlformats.or
     habilitar();
     const ok = planos.filter((p) => !p.error).length;
     $('convertir').textContent = ok > 1 ? `Convertir ${ok} planos` : 'Convertir';
+    vista();
     $('zip').hidden = generados.length < 2;
   }
   function habilitar() {
     const ok = planos.filter((p) => !p.error).length;
     const mot = $('m-motivo').value.trim();
-    $('convertir').disabled = !ok || !mot;
+    const sinObra = tipo() !== 'cao' && planos.some((p) => p.datos && !String(p.datos.obraTexto || '').trim());
+    $('convertir').disabled = !ok || !mot || sinObra;
     if (generados.length) return;
-    $('estado').textContent = !planos.length ? 'Cargá al menos un plano para convertir.' : !ok ? 'Ninguno de los archivos se puede convertir.' : !mot ? 'Completá el motivo de la modificación para poder convertir.' : 'Revisá los datos leídos y la modificación, y convertí.';
+    $('estado').textContent = !planos.length ? 'Cargá al menos un plano para convertir.' : !ok ? 'Ninguno de los archivos se puede convertir.' : !mot ? 'Completá el motivo de la modificación para poder convertir.' : sinObra ? 'Completá la obra de los planos marcados: no pude leerla del Excel.' : 'Revisá los datos leídos y la modificación, y convertí.';
   }
 
   function mostrarResultado(p) {
@@ -1445,7 +1743,7 @@ window.__KIT__={"sheetXml": "<worksheet xmlns=\"http://schemas.openxmlformats.or
     if (r.error) { res.style.background = '#FBEDEB'; res.innerHTML = `<span style="color:var(--mal)">No se pudo convertir: ${esc(r.error)}</span>`; return; }
     const blob = new Blob([r.bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
-    const extra = [r.formato === 'viejo' ? `${r.imagenes} imágenes viejas borradas` : null, `${r.pies} pies de hoja actualizados`].filter(Boolean).join(' · ');
+    const extra = [r.formato === 'cao-nuevo' && tipo() !== 'cao' ? 'se repuso el rótulo de arriba' : null, r.formato === 'viejo' ? `${r.imagenes} imágenes viejas borradas` : null, r.carteles ? `${r.carteles} carteles viejos borrados` : null, `${r.pies} pies de hoja actualizados`].filter(Boolean).join(' · ');
     res.innerHTML = `<span>Listo:</span> <a href="${url}" download="${esc(r.nombre)}">${esc(r.nombre)}</a> <span class="chip">${esc(extra)}</span>${r.avisos?.length ? `<span style="color:var(--mal)">${esc(r.avisos.join(' '))}</span>` : ''}`;
   }
 
@@ -1463,7 +1761,7 @@ window.__KIT__={"sheetXml": "<worksheet xmlns=\"http://schemas.openxmlformats.or
     for (const p of planos) {
       if (p.error) continue;
       try {
-        const r = await Rotulo.convertir(p.buf.slice(0), p.file.name, { tipo: t, mod, obra, datos: p.datos, descripcion: p.datos.descripcion, condicionCAO: $('cond').value }, KIT);
+        const r = await Rotulo.convertir(p.buf.slice(0), p.file.name, { tipo: t, mod, obra, datos: p.datos, descripcion: p.datos.descripcion }, KIT);
         p.resultado = r; generados.push(r);
       } catch (e) { p.resultado = { error: e.message }; console.error(e); }
       mostrarResultado(p);
