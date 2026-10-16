@@ -216,7 +216,7 @@ table.cab input.num.malo { border-color: var(--mal); background: #FBEDEB; }
       <p>Cambio de rótulo de borneras y listas de cables al formato nuevo de Edenor, armado y actualización de la lista de cables, y corrección de las conexiones entre borneras.</p>
     </div>
     <div><small>Rótulo</small><strong>Modelo 2020</strong><small style="margin-top:8px">Colores</small><strong>ET 3.1.7 002</strong></div>
-    <div><small>Archivos</small><strong>.xlsx</strong><small style="margin-top:8px">Se procesan</small><strong>en esta compu</strong><small style="margin-top:8px" id="version">Versión 16/10/2026 a</small></div>
+    <div><small>Archivos</small><strong>.xlsx</strong><small style="margin-top:8px">Se procesan</small><strong>en esta compu</strong><small style="margin-top:8px" id="version">Versión 16/10/2026 b</small></div>
   </header>
 
   <nav class="modos" role="tablist" aria-label="Función">
@@ -3270,8 +3270,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     errores.length = 0; errores.push(...resto);
     for (const e of errores) e.grupo = e.tipo === 'borne' ? 'conexion' : 'cable';
+    // ¿el error toca la obra? En los planos de instalación/retiro, la obra es lo pintado (rosa, amarillo, celeste, verde).
+    // Lo que no está pintado ya existía: sus diferencias son viejas y se muestran aparte.
+    const MARCAS = new Set(['rojo', 'amarillo', 'celeste', 'azul', 'verde']);
+    const marcada = (z) => MARCAS.has(z.o.colores?.num) || MARCAS.has(z.o.colores?.form) || MARCAS.has(z.h.color) || MARCAS.has(z.h.colorAp) || MARCAS.has(z.h.colorBo);
+    const hayMarcas = info.some((x) => [...indice.get(x).values()].some((v) => v.some(marcada)));
+    const deLaObra = (cable) => !!cable && info.some((x) => (indice.get(x).get(claveCable(cable)) || []).some(marcada));
+    for (const e of [...errores, ...avisos]) e.obra = !hayMarcas || deLaObra(e.cable) || deLaObra(e.otroCable);
     errores.sort(orden); avisos.sort(orden);
-    return { revisadas, bien, errores, avisos, faltan: [...faltan.entries()].sort((a, b) => b[1] - a[1]).map(([bornera, n]) => ({ bornera, n })) };
+    return { revisadas, bien, errores, avisos, hayMarcas, faltan: [...faltan.entries()].sort((a, b) => b[1] - a[1]).map(([bornera, n]) => ({ bornera, n })) };
   }
 
   root.Verificar = { verificar };
@@ -3958,10 +3965,16 @@ window.__LISTA_KIT__="UEsDBBQAAAAIAEiBTl2qSvn5lwEAAMIHAAATAAAAW0NvbnRlbnRfVHlwZX
     if (!res) { c.innerHTML = '<p class="vacio">Cargá al menos dos borneras que se conecten entre sí.</p>'; return; }
     const planosRes = [...new Set([...res.errores, ...res.avisos].map((e) => e.en.plano))].sort();
     if (filtro && !planosRes.includes(filtro)) filtro = '';
-    const errs = res.errores.filter((e) => !filtro || e.en.plano === filtro || e.dice.plano === filtro);
-    const avs = res.avisos.filter((e) => !filtro || e.en.plano === filtro);
-    const nCab = res.errores.filter((e) => e.grupo === 'cable').length, nCon = res.errores.length - nCab;
-    let h = `<div class="resumen"><span><b>${res.revisadas}</b> conexiones entre borneras cargadas</span><span><b style="color:#3F7D2C">${res.bien}</b> se corresponden</span><span><b style="color:var(--mal)">${nCab}</b> errores de cables</span><span><b style="color:var(--mal)">${nCon}</b> errores de conexiones</span><span><b>${res.avisos.length}</b> avisos</span></div>`;
+    const todos = res.errores.filter((e) => !filtro || e.en.plano === filtro || e.dice.plano === filtro);
+    const avsTodos = res.avisos.filter((e) => !filtro || e.en.plano === filtro);
+    // lo que toca la obra (pintado) va primero; las diferencias en lo existente, aparte
+    const errs = todos.filter((e) => e.obra), viejos = todos.filter((e) => !e.obra);
+    const avs = avsTodos.filter((e) => e.obra), avsViejos = avsTodos.filter((e) => !e.obra);
+    const obraE = res.errores.filter((e) => e.obra);
+    const nCab = obraE.filter((e) => e.grupo === 'cable').length, nCon = obraE.length - nCab;
+    const nViejos = res.errores.length - obraE.length;
+    let h = `<div class="resumen"><span><b>${res.revisadas}</b> conexiones entre borneras cargadas</span><span><b style="color:#3F7D2C">${res.bien}</b> se corresponden</span><span><b style="color:var(--mal)">${nCab}</b> errores de cables</span><span><b style="color:var(--mal)">${nCon}</b> errores de conexiones</span><span><b>${res.avisos.filter((e) => e.obra).length}</b> avisos</span>${nViejos ? `<span><b>${nViejos}</b> en lo existente</span>` : ''}</div>`;
+    if (res.hayMarcas) h += '<p class="faltan">Errores de la obra: los que tocan algo pintado (rosa, amarillo, celeste o verde). Las diferencias en lo que no está pintado ya existían antes de la obra y van aparte, al final.</p>';
     if (res.faltan.length) h += `<p class="faltan">No se pudieron revisar las vetas que van a borneras que no cargaste: ${res.faltan.slice(0, 14).map((f) => `<b>${esc(f.bornera)}</b> (${f.n})`).join(', ')}${res.faltan.length > 14 ? ` y ${res.faltan.length - 14} más` : ''}.</p>`;
     if (planos.filter((l) => !l.error).length < 2) h += '<p class="vacio">Con una sola bornera no hay contra qué comparar: cargá también las de la otra punta.</p>';
     if (planosRes.length > 1) h += `<div class="filtro"><label for="c-filtro">Ver solo el plano</label><select id="c-filtro"><option value="">Todos</option>${planosRes.map((p) => `<option${p === filtro ? ' selected' : ''}>${esc(p)}</option>`).join('')}</select><button type="button" class="sec" id="c-csv">Descargar informe (.csv)</button></div>`;
@@ -3970,18 +3983,27 @@ window.__LISTA_KIT__="UEsDBBQAAAAIAEiBTl2qSvn5lwEAAMIHAAATAAAAW0NvbnRlbnRfVHlwZX
       lista.map((e) => `<tr class="err"><td class="num">${esc(e.cable)}</td><td>${esc(e.veta)}</td><td>${donde(e.en)}</td><td>${esc(e.dice.bornera)} <b>${esc(e.dice.borne || '')}</b></td><td class="obs">${esc(e.texto)}</td></tr>`).join('') + '</tbody></table></div>';
     h += tabla('Errores de conexiones', 'La veta está en la otra punta, pero en otro borne, vuelve a otra bornera o no tiene destino.', errs.filter((e) => e.grupo === 'conexion'));
     h += tabla('Errores de cables', 'El cable no está en la otra punta, figura con otro número, le falta la veta, tiene las vetas numeradas distinto o cambia la formación.', errs.filter((e) => e.grupo === 'cable'));
-    if (!errs.length && res.revisadas) h += '<p style="color:#3F7D2C;margin:0">Todas las conexiones revisadas se corresponden en las dos puntas.</p>';
-    if (avs.length) h += `<h3 style="font-size:14px;margin:16px 0 6px">Avisos</h3><div class="tabla-wrap"><table class="cab"><thead><tr><th>Cable</th><th>Dónde</th><th>Aviso</th></tr></thead><tbody>` +
-      avs.map((e) => `<tr class="av"><td class="num">${esc(e.cable)}</td><td>${donde(e.en)}</td><td>${esc(e.texto)}</td></tr>`).join('') + '</tbody></table></div>';
+    if (!errs.length && res.revisadas) h += `<p style="color:#3F7D2C;margin:0">${res.hayMarcas ? 'En lo que toca la obra, todas' : 'Todas'} las conexiones revisadas se corresponden en las dos puntas.</p>`;
+    const tablaAv = (lista) => `<div class="tabla-wrap"><table class="cab"><thead><tr><th>Cable</th><th>Dónde</th><th>Aviso</th></tr></thead><tbody>` +
+      lista.map((e) => `<tr class="av"><td class="num">${esc(e.cable)}</td><td>${donde(e.en)}</td><td>${esc(e.texto)}</td></tr>`).join('') + '</tbody></table></div>';
+    if (avs.length) h += `<h3 style="font-size:14px;margin:16px 0 6px">Avisos</h3>` + tablaAv(avs);
+    if (viejos.length || avsViejos.length) {
+      h += `<details style="margin-top:18px"><summary style="cursor:pointer;font-weight:600">Diferencias en lo existente (${viejos.length} errores${avsViejos.length ? `, ${avsViejos.length} avisos` : ''}) <span style="font-weight:400;color:var(--gris)">— lo que no está pintado como parte de la obra; ya estaba así antes</span></summary>`;
+      h += tabla('Errores de conexiones', 'En lo existente.', viejos.filter((e) => e.grupo === 'conexion'));
+      h += tabla('Errores de cables', 'En lo existente.', viejos.filter((e) => e.grupo === 'cable'));
+      if (avsViejos.length) h += `<h3 style="font-size:14px;margin:16px 0 6px">Avisos</h3>` + tablaAv(avsViejos);
+      h += '</details>';
+    }
     c.innerHTML = h;
     $('c-filtro')?.addEventListener('change', (e) => { filtro = e.target.value; pintar(); });
     $('c-csv')?.addEventListener('click', csv);
   }
   function csv() {
     const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const filas = [['Tipo', 'Cable', 'Veta', 'Plano', 'Hoja', 'Bornera', 'Borne', 'Dice que va a', 'Borne destino', 'Qué no coincide']];
-    for (const e of res.errores) filas.push([e.grupo === 'cable' ? 'Error de cable' : 'Error de conexión', e.cable, e.veta, e.en.plano, e.en.hoja, e.en.bornera, e.en.borne, e.dice.bornera, e.dice.borne, e.texto]);
-    for (const e of res.avisos) filas.push(['Aviso', e.cable, e.veta, e.en.plano, e.en.hoja, e.en.bornera, e.en.borne, '', '', e.texto]);
+    const filas = [['Tipo', 'Parte', 'Cable', 'Veta', 'Plano', 'Hoja', 'Bornera', 'Borne', 'Dice que va a', 'Borne destino', 'Qué no coincide']];
+    const parte = (e) => (e.obra ? 'Obra' : 'Existente');
+    for (const e of res.errores) filas.push([e.grupo === 'cable' ? 'Error de cable' : 'Error de conexión', parte(e), e.cable, e.veta, e.en.plano, e.en.hoja, e.en.bornera, e.en.borne, e.dice.bornera, e.dice.borne, e.texto]);
+    for (const e of res.avisos) filas.push(['Aviso', parte(e), e.cable, e.veta, e.en.plano, e.en.hoja, e.en.bornera, e.en.borne, '', '', e.texto]);
     const txt = '\ufeff' + filas.map((f) => f.map(q).join(';')).join('\r\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv;charset=utf-8' }));
