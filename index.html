@@ -216,7 +216,7 @@ table.cab input.num.malo { border-color: var(--mal); background: #FBEDEB; }
       <p>Cambio de rótulo de borneras y listas de cables al formato nuevo de Edenor, armado y actualización de la lista de cables, y corrección de las conexiones entre borneras.</p>
     </div>
     <div><small>Rótulo</small><strong>Modelo 2020</strong><small style="margin-top:8px">Colores</small><strong>ET 3.1.7 002</strong></div>
-    <div><small>Archivos</small><strong>.xlsx</strong><small style="margin-top:8px">Se procesan</small><strong>en esta compu</strong><small style="margin-top:8px" id="version">Versión 16/10/2026 c</small></div>
+    <div><small>Archivos</small><strong>.xlsx</strong><small style="margin-top:8px">Se procesan</small><strong>en esta compu</strong><small style="margin-top:8px" id="version">Versión 16/10/2026 d</small></div>
   </header>
 
   <nav class="modos" role="tablist" aria-label="Función">
@@ -2009,7 +2009,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   // y sin ceros de relleno (B02L1 = B2L1). Lo que va entre paréntesis o después de / o ; no es parte del nombre.
   // "LO" al final es "L0" escrito con la letra O (B02m1LO = B02m1L0)
   // "API-A3L1" es la A3L1 (el tablero va adelante con guion)
-  const claveB = (s) => norm(s).replace(/^[A-Z]{2,5}\s*-\s*(?=[A-Z]*\d*\s*L\s*\d)/, '').replace(/[(/;].*$/, '').replace(/["'\u201C\u201D.\s-]+/g, '').replace(/LO$/, 'L0').replace(/([A-Z])0+(\d)/g, '$1$2');
+  // Guiones raros (– — _) valen como guion; la letra O pegada a números es un cero (BO1L1 = B01L1, L1O = L10).
+  const claveB = (s) => norm(s).replace(/[\u2010-\u2015_]/g, '-').replace(/^[A-Z]{2,5}\s*-\s*(?=[A-Z]*\d*\s*L\s*\d)/, '').replace(/[(/;].*$/, '').replace(/["'\u201C\u201D\u00B4`.\s-]+/g, '')
+    .replace(/LO$/, 'L0').replace(/(?<=[A-Z])O(?=\d)|(?<=\d)O(?=\d|$)/g, '0').replace(/([A-Z])0+(\d)/g, '$1$2');
   // claves de un rótulo que nombra varias borneras: "H2L7 - H7L7 - L01 LC", "B3L10 "A"- B4L10 "A"", "L3P-L3I-3L3-4L3".
   // Los pedazos que no son una bornera se pegan: "3 - L3" es 3L3 y "B4L3-AD" es B4L3AD.
   const clavesDe = (s) => {
@@ -2100,8 +2102,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       }
       // el nombre escrito en el mismo encabezado ("BORNERA 4200", "BORNERA TCRP") manda sobre lo de abajo (que puede ser una descripción)
       if (lbNombre) bornera = lbNombre.text.replace(/^\s*BORNERA\s+/i, '').trim();
-      // si no, el nombre de la hoja ("6 1L3", "9 L3D"); si tampoco, la hoja sigue la bornera de la anterior del mismo plano
-      if (!bornera || esForm(bornera)) { const t = String(s.name).split(/\s+/).find((x) => pareceBornera(x)); if (t) bornera = t; }
+      // lo que no es un nombre de bornera ("EQUIPOS: TR1", 'ARMARIO "+Q2"', una ubicación) no sirve: se busca en la hoja
+      if (bornera && (/:/.test(bornera) || /^(EQUIPOS?|ARMARIO|TABLERO|GABINETE|CELDA|LATERAL|FONDO|FRENTE|VISTA)\b/.test(norm(bornera)))) bornera = '';
+      // si no, el nombre de la hoja ("6 1L3", "9 L3D", "D20S-HV 34", "H13-Q2-X1" -> X1); si tampoco, la hoja sigue la bornera de la anterior
+      if (!bornera || esForm(bornera)) {
+        const nom = String(s.name).trim(), tk = nom.split(/[\s-]+/);
+        const t = tk.find((x) => pareceBornera(x)) || (/^[A-Z]{1,3}\d+[A-Z]?$/i.test(tk.at(-1)) && tk.length > 1 ? tk.at(-1) : null)
+          || (/[A-Z]/i.test(nom) && /\d/.test(nom) && !/^(H|HOJA)\s*\d+(\s*\(\d+\))?$/i.test(nom) ? nom : null);
+        if (t) bornera = t;
+      }
       if ((!bornera || esForm(bornera)) && ultimaBornera) bornera = ultimaBornera;
       if (!bornera || esForm(bornera)) bornera = datos.bornera || bornera || '';
       ultimaBornera = bornera;
@@ -2128,13 +2137,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const deDestino = new Set(lados.map((L) => L.dBo));
       const candBorne = grid.flatMap((r) => r.cells).filter((c) => c.row >= r1 && c.row <= r3 && /^BORNES?(\s*N.{0,3})?\.?$/.test(norm(c.text)) && !deDestino.has(c.col));
       const ref = lb ? lb.col : izq ? izq.col : der ? der.col : 0;
+      // si no hay "BORNE", la del conector del aparato ("TB3", "X1"): ahí están los números de borne propios
+      if (!candBorne.length) candBorne.push(...grid.flatMap((r) => r.cells).filter((c) => c.row >= r1 && c.row <= r3 && /^(TB|XT?|CN)\d+$/.test(norm(c.text).replace(/\s+/g, '')) && !deDestino.has(c.col)));
       const lBorneN = candBorne.sort((a, b) => Math.abs(a.col - ref) - Math.abs(b.col - ref))[0] || null;
       const iniHoja = ocurrencias.length;
       for (const L of lados) {
         for (const col of L.cols.sort((a, b) => a - b)) {
-          const num = celda(r1, col)?.text || '', form = celda(r2, col)?.text || '', dest = celda(r3, col)?.text || '';
+          let num = celda(r1, col)?.text || '';
+          const form = celda(r2, col)?.text || '', dest = celda(r3, col)?.text || '';
+          // "S/N", "S/Nº": cable sin número (la lista lo muestra para numerarlo)
+          if (/^S\s*\/?\s*N[º°O.]*$/i.test(num.trim())) num = '';
           // columnas con el color de cada veta (encabezado "COLOR"): no son cables
           if (!num && /^COLOR/.test(norm(dest))) continue;
+          // un texto en la fila de los números ("CABLES AL INTERIOR DE Q1") no es un número de cable
+          if (num && !/^[A-Z]{0,3}[.\-\s]?\d[\d.\-\s/]*[A-Z]{0,2}$|^X{1,3}$|^S\/?N$/i.test(num.trim())) continue;
           if (!num && !form && !opts.todas) continue;
           const hilos = [];
           const eq = equipoDe(bornera, datos.bornera);
@@ -2953,7 +2969,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   };
 
   const limpio = (s) => norm(s).replace(/\s+/g, '');
-  const borneN = (s) => { const t = limpio(s); return /^\d+$/.test(t) ? String(+t) : t; };
+  // "TB3-51" / "X1:5" es el borne 51 / 5 del conector: se compara el número
+  const borneN = (s) => { let t = limpio(s); const m = /^(?:TB|XT?|CN)\d+[-:.](\w+)$/.exec(t); if (m) t = m[1]; return /^\d+$/.test(t) ? String(+t) : t; };
   const vetaN = (s) => { const t = limpio(s); return /^\d+$/.test(t) ? String(+t) : t; };
   // sin número de veta: vacía, X, o un texto que no es una veta ("Se trasladó del a5L0-43")
   const sinVeta = (v) => !v || v === 'X' || /\s/.test(v) || v.length > 6;
@@ -2992,7 +3009,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     // El equipo solo se usa si es uno y claro: un plano con borneras de dos equipos (B1L10A y B2L10A, más una "L10A" común)
     // no tiene equipo, y sus hojas sin equipo quedan como están. Los aparatos en minúscula ("e7L3", "a5L0") no son el equipo.
     const eqDe = (l) => {
-      const delRot = LI.clavesDe(l.bornera).map((k) => LI.partesB(k).eq).filter((e) => e && /^[A-Z]/.test(e));
+      // los pedazos del rótulo que empiezan en minúscula son aparatos ("m1L0 C", "a5L0"), no dicen el equipo
+      const delRot = String(l.bornera || '').split(/\s*[-\u2013;\/,]\s*|\s{2,}/).filter((t) => /^\s*[A-Z]/.test(t)).flatMap((t) => LI.clavesDe(t)).map((k) => LI.partesB(k).eq).filter((e) => e && /^[A-Z]/.test(e));
       // rótulo sin equipo ("L0 / L0AL"): tomarlo de las hojas, que sí lo traen (E01L0, E01L0AL)
       const deHojas = l.ocurrencias.filter((o) => /^\s*[A-Z]/.test(o.bornera || '')).map((o) => LI.partesB(kBloque(o.bornera)).eq).filter((e) => e && /^[A-Z]/.test(e));
       const todos = [...new Set([...delRot, ...deHojas])];
@@ -3004,8 +3022,19 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const bloques = new Set(l.ocurrencias.map((o) => kHoja(eq, o.bornera)).filter(Boolean));
       // claves del rótulo: si trae el equipo (B18L3) van tal cual; las sueltas (L0) se completan con el equipo del plano
       const delRot = LI.clavesDe(l.bornera).map((k) => { const pk = LI.partesB(k); return eq && pk.l && !pk.eq ? eq + k : k; });
-      const claves = new Set([...delRot, ...l.ocurrencias.map((o) => kHoja(eq, o.bornera))].filter((k) => k && !/^TB\d/.test(k)));
-      return { l, i, eq, bloques, claves, nombre: l.bornera || [...bloques][0] || l.plano };
+      // el paréntesis también puede ser parte del nombre: "A3a5L0(X1)" se escribe "A3a5L0X1" o "A3a5X1"
+      const conParen = [l.bornera, ...l.ocurrencias.map((o) => o.bornera)].flatMap((t) => [...String(t || '').matchAll(/([^\s()/;]+)\s*\(([A-Z]{1,3}\d{1,3})\)/gi)])
+        .flatMap((m) => { const a = LI.claveB(m[1]), b = limpio(m[2]); return [a + b, a.replace(/L0$/, '') + b]; });
+      // el tablero por su descripción en el nombre del archivo ("Born. TSICA" -> TSICA, "Born. TP TR1" -> TPTR1)
+      const desc = /\((?:\s*BORN[A-Z]*\.?)\s*([^)]+)\)/i.exec(String(l.archivo || ''));
+      const alias = desc ? [LI.claveB(desc[1])].filter((k) => k && k.length >= 3) : [];
+      const claves = new Set([...delRot, ...conParen, ...alias, ...l.ocurrencias.map((o) => kHoja(eq, o.bornera))].filter((k) => k && !/^TB\d/.test(k)));
+      // equipo que dice el nombre del archivo ("Born. TCT A03", "API Eq. B02", "TP B01"): sirve para no emparejar
+      // de forma aproximada un destino de otro equipo ("A4L10" no es la "L10" del TCT A03)
+      const ma = /\((?:BORN[A-Z.]*)?([^)]*)\)/i.exec(String(l.archivo || ''));
+      const eqs = [...String(ma ? ma[1] : '').toUpperCase().matchAll(/(?:^|[^A-Z0-9])([A-H])0?(\d{1,2})(?![0-9A-Z])/g)].map((m) => m[1] + m[2]);
+      const eqArch = eq || (new Set(eqs).size === 1 ? eqs[0] : '');
+      return { l, i, eq, eqArch, bloques, claves, nombre: l.bornera || [...bloques][0] || l.plano };
     });
     // propia: la bornera de la hoja desde la que se lee la conexión.
     // Los nombres no siempre se escriben igual: en una SE de un solo campo las borneras se llaman L6, L7…
@@ -3023,12 +3052,31 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     // se prueba con el texto tal como está escrito en el plano
     const conEquipoAdelante = (nombres, k) => nombres.some((n) => n && k && n !== k && n.length >= 3 && LI.partesB(n).l
       && ((k.endsWith(n) && /^[A-Z]+\d+$/.test(k.slice(0, -n.length))) || (n.endsWith(k) && /^[A-Z]+\d+$/.test(n.slice(0, -k.length)))));
+    // variantes de escritura de un destino, para probar si tal como está no aparece ninguna bornera cargada
+    const romano = { I: '1', II: '2', III: '3', IV: '4', V: '5' };
+    const variantes = (t) => {
+      const s0 = String(t || '').trim(), out = [];
+      const sinSigno = s0.replace(/^[+\-=]\s*/, '');                     // IEC: "-X1", "+Q2"
+      if (sinSigno !== s0) out.push(sinSigno);
+      const tk = s0.split(/\s+/);                                          // tablero adelante: "TSI CA H2L7", "TTS L10L"
+      for (let i = 1; i < tk.length; i++) { const r = tk.slice(i).join(' '); if (pareceB(r)) { out.push(r); break; } }
+      const rom = s0.replace(/^([A-Z])(III|II|IV|V|I)(?=\s*[A-Z]?\d|\s*L)/i, (m, a, r) => a + romano[r.toUpperCase()]); // EI L10B = E1L10B
+      if (rom !== s0) out.push(rom);
+      const sinBorne = s0.replace(/\s*[-:]\s*\d{1,3}$/, '');            // borne pegado: "H1L6-25", "H1L6 : 25"
+      if (sinBorne !== s0 && pareceB(sinBorne)) out.push(sinBorne);
+      const ara = s0.replace(/^([A-Z])([1-5])(?=L\d)/i, (m, a, n) => a + Object.keys(romano).find((k) => romano[k] === n)); // E1L10B = EIL10B
+      if (ara !== s0) out.push(ara);
+      return out;
+    };
+    const pareceB = (s) => LI.pareceBornera(s) || /^[A-Z]{1,3}\d+[A-Z]?$/i.test(String(s).replace(/\s+/g, ''));
     const resolver = (ap, desde, propia, orig) => {
+      const ok = (x) => x && (x.interno || x.planos.length || x.otraVersion);
       const r = resolver0(ap, desde, propia);
-      if (orig && limpio(orig) !== limpio(ap) && r && !r.interno && !r.otraVersion && !r.planos.length) {
-        const r2 = resolver0(orig, desde, propia);
-        if (r2 && (r2.interno || r2.planos.length || r2.otraVersion)) return r2;
-      }
+      if (ok(r) || (r && r.interno)) return r;
+      const pruebas = [];
+      if (orig && limpio(orig) !== limpio(ap)) pruebas.push(orig);
+      for (const t of [ap, orig].filter(Boolean)) pruebas.push(...variantes(t));
+      for (const t of pruebas) { const r2 = resolver0(t, desde, propia); if (ok(r2)) return { ...r2, exacto: false, variante: t }; }
       return r;
     };
     const resolver0 = (ap, desde, propia) => {
@@ -3051,11 +3099,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         if (delTablero.length) otros = delTablero;
       }
       let cand = otros.filter((x) => x.claves.has(d.k));
+      // para las coincidencias aproximadas: si el destino dice su equipo y el plano es de otro equipo, no es ese plano
+      const eqD = /^[A-Z]/.test(partesB(d.k).eq || '') ? partesB(d.k).eq : '';
+      const otroEquipo = (x) => !!eqD && !!x.eqArch && x.eqArch !== eqD && !eqD.startsWith(x.eqArch + 'A') && !(x.eqArch.length < eqD.length && eqD.startsWith(x.eqArch) && /^[a-z]/i.test(eqD.slice(x.eqArch.length)));
+      const otrosAprox = otros.filter((x) => !otroEquipo(x));
       // coincidencia exacta "fuerte": el nombre dice su equipo (A04L1, B2L11) o no es una bornera L (A141X3).
       // Un nombre genérico como "1L3" o "L3A" lo tienen muchos tableros (el TP del trafo y el de la línea): cuenta como aproximada.
       const pk0 = partesB(d.k);
       const exacto = cand.length > 0 && (!pk0.l || /^[A-Z]/.test(pk0.eq || ''));
-      if (!cand.length) cand = otros.filter((x) => [...x.claves].some((c) => mismaB(c, d.k) && !sueltoIgual(c, d.k)));
+      if (!cand.length) cand = otrosAprox.filter((x) => [...x.claves].some((c) => mismaB(c, d.k) && !sueltoIgual(c, d.k)));
       if (!cand.length) {
         // nombres con y sin el equipo: L6 = H1L6
         if (propiaSuelta([kp, ...desde.claves], d.k)) return interno;
@@ -3063,10 +3115,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         if (bl) return { planos: [desde], bloque: bl, d };
         // la misma bornera con el equipo adelante ("B1e7L3" es la "e7L3" de un plano que no dice su equipo):
         // se prueba antes que la coincidencia solo por la parte L, que es más floja
-        cand = otros.filter((x) => [...x.claves].some((c) => conEquipoAdelante([c], d.k)));
-        if (!cand.length) cand = otros.filter((x) => [...x.claves].some((c) => sueltoIgual(c, d.k)));
+        cand = otrosAprox.filter((x) => [...x.claves].some((c) => conEquipoAdelante([c], d.k)));
+        if (!cand.length) cand = otrosAprox.filter((x) => [...x.claves].some((c) => sueltoIgual(c, d.k)));
         // borneras que no son "L": el mismo nombre con una letra de menos adelante ("141X3" = "A141.X3")
-        if (!cand.length && d.k.length >= 4) cand = otros.filter((x) => [...x.claves].some((c) => c !== d.k && ((c.endsWith(d.k) && /^[A-Z]$/.test(c.slice(0, -d.k.length))) || (d.k.endsWith(c) && c.length >= 4 && /^[A-Z]$/.test(d.k.slice(0, -c.length))))));
+        if (!cand.length && d.k.length >= 4) cand = otrosAprox.filter((x) => [...x.claves].some((c) => c !== d.k && ((c.endsWith(d.k) && /^[A-Z]$/.test(c.slice(0, -d.k.length))) || (d.k.endsWith(c) && c.length >= 4 && /^[A-Z]$/.test(d.k.slice(0, -c.length))))));
       }
       if (!cand.length) return { planos: [], d };
       // instalación se compara con instalación y retiro con retiro (o con planos sin modificación):
