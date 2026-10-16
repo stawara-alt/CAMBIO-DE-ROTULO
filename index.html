@@ -216,7 +216,7 @@ table.cab input.num.malo { border-color: var(--mal); background: #FBEDEB; }
       <p>Cambio de rótulo de borneras y listas de cables al formato nuevo de Edenor, armado y actualización de la lista de cables, y corrección de las conexiones entre borneras.</p>
     </div>
     <div><small>Rótulo</small><strong>Modelo 2020</strong><small style="margin-top:8px">Colores</small><strong>ET 3.1.7 002</strong></div>
-    <div><small>Archivos</small><strong>.xlsx</strong><small style="margin-top:8px">Se procesan</small><strong>en esta compu</strong><small style="margin-top:8px" id="version">Versión 16/10/2026 b</small></div>
+    <div><small>Archivos</small><strong>.xlsx</strong><small style="margin-top:8px">Se procesan</small><strong>en esta compu</strong><small style="margin-top:8px" id="version">Versión 16/10/2026 c</small></div>
   </header>
 
   <nav class="modos" role="tablist" aria-label="Función">
@@ -2008,7 +2008,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   // clave de UN nombre de bornera: sin espacios, comillas, puntos ni guiones (B3L10 "A" = B3L10A, 3 - L3 = 3L3, C. 690 f1 L0 = C690F1L0)
   // y sin ceros de relleno (B02L1 = B2L1). Lo que va entre paréntesis o después de / o ; no es parte del nombre.
   // "LO" al final es "L0" escrito con la letra O (B02m1LO = B02m1L0)
-  const claveB = (s) => norm(s).replace(/[(/;].*$/, '').replace(/["'\u201C\u201D.\s-]+/g, '').replace(/LO$/, 'L0').replace(/([A-Z])0+(\d)/g, '$1$2');
+  // "API-A3L1" es la A3L1 (el tablero va adelante con guion)
+  const claveB = (s) => norm(s).replace(/^[A-Z]{2,5}\s*-\s*(?=[A-Z]*\d*\s*L\s*\d)/, '').replace(/[(/;].*$/, '').replace(/["'\u201C\u201D.\s-]+/g, '').replace(/LO$/, 'L0').replace(/([A-Z])0+(\d)/g, '$1$2');
   // claves de un rótulo que nombra varias borneras: "H2L7 - H7L7 - L01 LC", "B3L10 "A"- B4L10 "A"", "L3P-L3I-3L3-4L3".
   // Los pedazos que no son una bornera se pegan: "3 - L3" es 3L3 y "B4L3-AD" es B4L3AD.
   const clavesDe = (s) => {
@@ -2061,7 +2062,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       return memoColor.get(st);
     };
     const ocurrencias = [], sinCable = [];
-    let hojasBornera = 0;
+    let hojasBornera = 0, ultimaBornera = '';
     for (const s of pkg.sheets.slice(1)) {
       const doc = await pkg.doc(s.path); if (!doc || !byTag(doc, 'sheetData').length) continue;
       const sh = new X.Sheet(doc, pkg);
@@ -2072,7 +2073,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       hojasBornera++;
       const r1 = Math.min(...etiq.map((c) => c.row)), r2 = r1 + 1, r3 = r1 + 2;
       const enFila = etiq.filter((c) => c.row === r1).sort((a, b) => a.col - b.col);
-      const lb = grid.flatMap((r) => r.cells).find((c) => c.row === r1 && /^BORNERA$/.test(norm(c.text)));
+      // encabezado "BORNERA" (puede venir con más texto en la misma celda: "BORNERA L5", "BORNERA   LATERAL IZQUIERDO")
+      const lb = grid.flatMap((r) => r.cells).find((c) => c.row === r1 && /^BORNERA\b/.test(norm(c.text)));
       let izq = enFila[0], der = enFila.length > 1 ? enFila.at(-1) : null;
       if (!der && lb && izq.col > lb.col) { der = izq; izq = null; }
       else if (!der && !lb) {
@@ -2081,8 +2083,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         const f2 = forms(r2);
         if (f2.filter((c) => c.col > izq.col).length > f2.filter((c) => c.col < izq.col).length) { der = izq; izq = null; }
       }
-      // "BORNERA L5" en una sola celda
-      const lbNombre = grid.flatMap((r) => r.cells).find((c) => c.row === r1 && /^BORNERA\s+\S/.test(norm(c.text)));
+      // "BORNERA L5" en una sola celda (si lo que sigue es una ubicación, como "LATERAL IZQUIERDO", no es el nombre)
+      const UBICACION = /^(LATERAL|FONDO|FRENTE|FRONTAL|POSTERIOR|ANTERIOR|IZQUIERD|DERECH|PUERTA|PANEL|RIEL)/;
+      const lbNombre = grid.flatMap((r) => r.cells).find((c) => c.row === r1 && /^BORNERA\s+\S/.test(norm(c.text)) && !UBICACION.test(norm(c.text).replace(/^BORNERA\s+/, '')));
       // nombre de la bornera (debajo de "BORNERA")
       const fila2 = grid.find((r) => r.row === r2);
       const esForm = (t) => /^\d+\s*x/i.test(String(t || '').replace(/\s+/g, ''));
@@ -2095,8 +2098,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         const c = fila2.cells.find((x) => x.col > desde && x.col < hasta && x.text.trim() && !esForm(x.text) && !/^(DESTINO|TIPO)/.test(norm(x.text)));
         if (c) bornera = c.text;
       }
-      if (lbNombre && (!lb || !bornera || esForm(bornera) || /^\(/.test(bornera.trim()))) bornera = lbNombre.text.replace(/^\s*BORNERA\s+/i, '').trim();
+      // el nombre escrito en el mismo encabezado ("BORNERA 4200", "BORNERA TCRP") manda sobre lo de abajo (que puede ser una descripción)
+      if (lbNombre) bornera = lbNombre.text.replace(/^\s*BORNERA\s+/i, '').trim();
+      // si no, el nombre de la hoja ("6 1L3", "9 L3D"); si tampoco, la hoja sigue la bornera de la anterior del mismo plano
+      if (!bornera || esForm(bornera)) { const t = String(s.name).split(/\s+/).find((x) => pareceBornera(x)); if (t) bornera = t; }
+      if ((!bornera || esForm(bornera)) && ultimaBornera) bornera = ultimaBornera;
       if (!bornera || esForm(bornera)) bornera = datos.bornera || bornera || '';
+      ultimaBornera = bornera;
       // fin de los datos
       let fin = sh.lastRow();
       for (const r of grid) if (r.row > r3 && r.cells.some((c) => /CONDUCTORES UTILIZADOS|CABLE CONTINUA|^PL\.?\s*N[º°O]?\b|^S\.\s*E\.|^S\.?E\.?\s*N[º°O]?[.:]?$/.test(norm(c.text)))) { fin = r.row - 1; break; }
@@ -2125,6 +2133,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       for (const L of lados) {
         for (const col of L.cols.sort((a, b) => a - b)) {
           const num = celda(r1, col)?.text || '', form = celda(r2, col)?.text || '', dest = celda(r3, col)?.text || '';
+          // columnas con el color de cada veta (encabezado "COLOR"): no son cables
+          if (!num && /^COLOR/.test(norm(dest))) continue;
           if (!num && !form && !opts.todas) continue;
           const hilos = [];
           const eq = equipoDe(bornera, datos.bornera);
@@ -2155,6 +2165,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         const porFila = new Map();
         for (const o of deHoja) for (const h of o.hilos) { if (!porFila.has(h.fila)) porFila.set(h.fila, []); porFila.get(h.fila).push(o); }
         for (const o of deHoja) {
+          // destino libre del otro lado (ese lado no tiene vetas en la fila): la corrección puede necesitarlo
+          // si el de este lado es un puente interno ("L3UD 10" en el TP) o no tiene el cable
+          for (const h of o.hilos) {
+            if (porFila.get(h.fila).length >= 2) continue;
+            const alt = lados.filter((L2) => L2.lado !== o.lado && !porFila.get(h.fila).some((x) => x.lado === L2.lado) && (celda(h.fila, L2.dAp)?.text || '').trim())
+              .map((L2) => { const orig = celda(h.fila, L2.dAp).text; return { destAp: expandirDestino(orig, eqH), destApOrig: orig, destBo: celda(h.fila, L2.dBo)?.text || '' }; });
+            if (alt.length) { h.alt = alt; h.altSola = true; }
+          }
           const compartidos = o.hilos.filter((h) => porFila.get(h.fila).length >= 2);
           if (!compartidos.length) continue;
           const cuenta = new Map();
@@ -2961,7 +2979,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   // cómo mostrar un destino: el texto del plano, y si estaba abreviado, a qué bornera se refiere
   const verDest = (q) => (limpio(q.orig) === limpio(q.ap) ? q.ap : `${q.orig} (= ${q.ap})`);
   // formaciones iguales aunque se escriban distinto: "5x2´5" = "5x2,5", "RS485 4(2x0,5)bl" = "RS485" (una abrevia a la otra)
-  const formClave = (f) => formNorm(f).toLowerCase().replace(/[´'`]/g, ',').replace(/\.+$|\.(?=\D)/g, '');
+  const formClave = (f) => formNorm(f).toLowerCase().replace(/[´'`]/g, ',').replace(/(\d)\.(\d)/g, '$1,$2').replace(/\.+$|\.(?=\D)/g, '');
   const formIgual = (a, b) => { const x = formClave(a), y = formClave(b); return x === y || (/^[a-z]/.test(x) && /^[a-z]/.test(y) && (x.startsWith(y) || y.startsWith(x))); };
   // versiones que se pueden comparar entre sí: la misma, o cualquiera contra un plano sin modificación
   const versionCompatible = (a, b) => a === b || !a || !b || a === 'ninguna' || b === 'ninguna';
@@ -3021,12 +3039,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       // la misma bornera (conexión interna, no hay cable)
       if (d.k === kp) return interno;
       // otra bornera o bloque del mismo plano (TB2 desde TB1, H1L7 desde H1L6)
-      if (desde.bloques.has(d.k)) return { planos: [desde], bloque: d.k, d };
+      if (desde.bloques.has(d.k)) { const pkb = partesB(d.k); return { planos: [desde], bloque: d.k, d, exacto: !pkb.l || /^[A-Z]/.test(pkb.eq || '') }; }
       // el plano mismo nombrado entero (B2a5L0 desde su TB1)
       if (desde.claves.has(d.k)) return interno;
-      const otros = info.filter((x) => x !== desde);
+      let otros = info.filter((x) => x !== desde);
+      // "API-L1": el prefijo dice el tablero; si hay un plano de ese tablero (por el nombre del archivo o el rótulo), se busca ahí primero
+      const pref = /^\s*([A-Z]{2,5})\s*-\s*(?=[A-Z]*\d*\s*L\s*\d)/i.exec(String(ap || ''))?.[1];
+      if (pref) {
+        const re = new RegExp('(^|[^A-Z])' + pref + '([^A-Z]|$)', 'i');
+        const delTablero = otros.filter((x) => re.test(String(x.l.archivo || '') + ' ' + String(x.l.bornera || '')));
+        if (delTablero.length) otros = delTablero;
+      }
       let cand = otros.filter((x) => x.claves.has(d.k));
-      const exacto = cand.length > 0;
+      // coincidencia exacta "fuerte": el nombre dice su equipo (A04L1, B2L11) o no es una bornera L (A141X3).
+      // Un nombre genérico como "1L3" o "L3A" lo tienen muchos tableros (el TP del trafo y el de la línea): cuenta como aproximada.
+      const pk0 = partesB(d.k);
+      const exacto = cand.length > 0 && (!pk0.l || /^[A-Z]/.test(pk0.eq || ''));
       if (!cand.length) cand = otros.filter((x) => [...x.claves].some((c) => mismaB(c, d.k) && !sueltoIgual(c, d.k)));
       if (!cand.length) {
         // nombres con y sin el equipo: L6 = H1L6
@@ -3037,6 +3065,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         // se prueba antes que la coincidencia solo por la parte L, que es más floja
         cand = otros.filter((x) => [...x.claves].some((c) => conEquipoAdelante([c], d.k)));
         if (!cand.length) cand = otros.filter((x) => [...x.claves].some((c) => sueltoIgual(c, d.k)));
+        // borneras que no son "L": el mismo nombre con una letra de menos adelante ("141X3" = "A141.X3")
+        if (!cand.length && d.k.length >= 4) cand = otros.filter((x) => [...x.claves].some((c) => c !== d.k && ((c.endsWith(d.k) && /^[A-Z]$/.test(c.slice(0, -d.k.length))) || (d.k.endsWith(c) && c.length >= 4 && /^[A-Z]$/.test(d.k.slice(0, -c.length))))));
       }
       if (!cand.length) return { planos: [], d };
       // instalación se compara con instalación y retiro con retiro (o con planos sin modificación):
@@ -3072,7 +3102,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (!h.alt) return h;
       if (elegidos.has(h)) return elegidos.get(h);
       const kc = claveCable(z.o.cable);
-      const tiene = (hh) => partesDestino(hh).some((q) => { const rr = resolver(q.ap, z.pl, z.o.bornera, q.orig); return rr && rr.planos.some((y) => indice.get(y).has(kc)); });
+      // va a otro plano que tiene el cable (un destino al mismo plano es un puente interno, no el recorrido del cable)
+      // fila compartida: el destino que lleva a un plano con el cable; fila de un solo cable: además, que no sea un puente
+      // interno del mismo plano ("L3UD 10" en el TP), porque entonces el recorrido del cable es el del otro lado
+      const tiene = (hh) => partesDestino(hh).some((q) => { const rr = resolver(q.ap, z.pl, z.o.bornera, q.orig); return rr && (h.altSola ? !rr.interno && (rr.otraVersion || rr.planos.some((y) => y !== z.pl && indice.get(y).has(kc))) : rr.planos.some((y) => indice.get(y).has(kc))); });
       let r = h;
       if (!tiene(h)) { const a = h.alt.find(tiene); if (a) r = { ...h, ...a }; }
       elegidos.set(h, r);
@@ -3139,7 +3172,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
             vistos.add(clave);
             revisadas++;
             const base = { cable: e.o.cable, veta: e.h.hilo, en: lugar(x, e), dice: { plano: otro.l.plano, bornera: verDest(p), borne: p.bo } };
-            const allaCable = indice.get(otro).get(kc);
+            // en el mismo plano, la otra punta es otra bornera (otra columna del cable), no esta
+            const allaCable = (indice.get(otro).get(kc) || []).filter((z) => otro !== x || z.o !== e.o);
             // en la otra punta, ese borne vuelve a esta bornera y a este borne pero sin la veta marcada en ninguna columna de cable:
             // la conexión está, solo falta anotar el cable allá (aviso, no error)
             const sinCableAlla = () => (sinCableIdx.get(otro).get(borneN(p.bo)) || []).find((z) => partesDestino(z).some((q) => borneN(q.bo) === e.borne && (() => { const rr = resolver(q.ap, otro, z.bornera, q.orig); return rr && rr.planos.includes(x); })()));
@@ -3191,6 +3225,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
               }
             }
             if (!alla.length && p.bo) { const z = sinCableAlla(); if (z) { avisarSinCable(z); revisadas--; continue; } }
+            // falta la veta, el destino coincidió solo de forma aproximada y esa bornera no tiene ninguna veta del cable:
+            // es otra bornera que no se cargó ("1L3(L)", la del TP de la línea)
+            if (!alla.length && !r.exacto && !allaCable.some((z) => !r.bloque || z.bloque === r.bloque)) { const nk = r.d.k || r.d.texto; faltan.set(nk, (faltan.get(nk) || 0) + 1); revisadas--; continue; }
+            if (!alla.length && p.bo) {
+              // en ese borne hay otra columna de cable que vuelve acá: es la misma conexión con otro número de cable
+              // (p. ej. la hoja de continuación encabezada con otro número)
+              const ahi = (bornesIdx.get(otro).get(borneN(p.bo)) || []).filter((z) => claveCable(z.o.cable) !== kc
+                && partesDestino(hE(z)).some((q) => borneN(q.bo) === e.borne && (() => { const rr = resolver(q.ap, otro, z.o.bornera, q.orig); return rr && rr.planos.includes(x); })()));
+              if (ahi.length) {
+                const z = ahi[0];
+                errores.push({ ...base, tipo: 'numero', vetas: [e.h.hilo], bornes: [e.borne], otroCable: z.o.cable, otroPlano: otro.l.plano, otroBornera: z.o.bornera, otroHoja: z.o.hoja, _k: [kc, claveCable(z.o.cable), x.i, otro.i].join('|') });
+                continue;
+              }
+            }
             if (!alla.length) {
               errores.push({ ...base, tipo: 'veta', texto: sinVeta(e.veta) ? `En ${otro.l.plano} ${p.ap}, borne ${p.bo}, no está el cable ${e.o.cable}` : `En ${otro.l.plano} el cable ${e.o.cable} no tiene la veta ${e.h.hilo}` });
               continue;
@@ -3973,24 +4021,25 @@ window.__LISTA_KIT__="UEsDBBQAAAAIAEiBTl2qSvn5lwEAAMIHAAATAAAAW0NvbnRlbnRfVHlwZX
     const obraE = res.errores.filter((e) => e.obra);
     const nCab = obraE.filter((e) => e.grupo === 'cable').length, nCon = obraE.length - nCab;
     const nViejos = res.errores.length - obraE.length;
-    let h = `<div class="resumen"><span><b>${res.revisadas}</b> conexiones entre borneras cargadas</span><span><b style="color:#3F7D2C">${res.bien}</b> se corresponden</span><span><b style="color:var(--mal)">${nCab}</b> errores de cables</span><span><b style="color:var(--mal)">${nCon}</b> errores de conexiones</span><span><b>${res.avisos.filter((e) => e.obra).length}</b> avisos</span>${nViejos ? `<span><b>${nViejos}</b> en lo existente</span>` : ''}</div>`;
-    if (res.hayMarcas) h += '<p class="faltan">Errores de la obra: los que tocan algo pintado (rosa, amarillo, celeste o verde). Las diferencias en lo que no está pintado ya existían antes de la obra y van aparte, al final.</p>';
+    let h = `<div class="resumen"><span><b>${res.revisadas}</b> conexiones entre borneras cargadas</span><span><b style="color:#3F7D2C">${res.bien}</b> se corresponden</span><span><b style="color:var(--mal)">${nCab}</b> errores de cables</span><span><b style="color:var(--mal)">${nCon}</b> errores de conexiones</span><span><b>${res.avisos.filter((e) => e.obra).length}</b> avisos</span>${res.hayMarcas ? `<span><b>${nViejos}</b> errores previos</span>` : ''}</div>`;
+    if (res.hayMarcas) h += '<p class="faltan"><b>Errores del proyecto:</b> tocan algo pintado (rosa, amarillo, celeste o verde), o sea lo que hace esta obra. <b>Errores previos:</b> están en lo que no está pintado; ya estaban en los planos antes de la obra. Van aparte, al final.</p>';
     if (res.faltan.length) h += `<p class="faltan">No se pudieron revisar las vetas que van a borneras que no cargaste: ${res.faltan.slice(0, 14).map((f) => `<b>${esc(f.bornera)}</b> (${f.n})`).join(', ')}${res.faltan.length > 14 ? ` y ${res.faltan.length - 14} más` : ''}.</p>`;
     if (planos.filter((l) => !l.error).length < 2) h += '<p class="vacio">Con una sola bornera no hay contra qué comparar: cargá también las de la otra punta.</p>';
     if (planosRes.length > 1) h += `<div class="filtro"><label for="c-filtro">Ver solo el plano</label><select id="c-filtro"><option value="">Todos</option>${planosRes.map((p) => `<option${p === filtro ? ' selected' : ''}>${esc(p)}</option>`).join('')}</select><button type="button" class="sec" id="c-csv">Descargar informe (.csv)</button></div>`;
     else if (res.errores.length || res.avisos.length) h += '<div class="filtro"><button type="button" class="sec" id="c-csv">Descargar informe (.csv)</button></div>';
     const tabla = (titulo, expl, lista) => !lista.length ? '' : `<h3 style="font-size:14px;margin:16px 0 2px">${titulo} (${lista.length})</h3><p class="explica" style="margin:0 0 6px">${expl}</p><div class="tabla-wrap"><table class="cab"><thead><tr><th>Cable</th><th>Veta</th><th>Dónde</th><th>Dice que va a</th><th>Qué no coincide</th></tr></thead><tbody>` +
       lista.map((e) => `<tr class="err"><td class="num">${esc(e.cable)}</td><td>${esc(e.veta)}</td><td>${donde(e.en)}</td><td>${esc(e.dice.bornera)} <b>${esc(e.dice.borne || '')}</b></td><td class="obs">${esc(e.texto)}</td></tr>`).join('') + '</tbody></table></div>';
+    if (res.hayMarcas) h += `<h2 style="font-size:16px;margin:18px 0 0">Errores del proyecto (${errs.length})</h2>`;
     h += tabla('Errores de conexiones', 'La veta está en la otra punta, pero en otro borne, vuelve a otra bornera o no tiene destino.', errs.filter((e) => e.grupo === 'conexion'));
     h += tabla('Errores de cables', 'El cable no está en la otra punta, figura con otro número, le falta la veta, tiene las vetas numeradas distinto o cambia la formación.', errs.filter((e) => e.grupo === 'cable'));
-    if (!errs.length && res.revisadas) h += `<p style="color:#3F7D2C;margin:0">${res.hayMarcas ? 'En lo que toca la obra, todas' : 'Todas'} las conexiones revisadas se corresponden en las dos puntas.</p>`;
+    if (!errs.length && res.revisadas) h += `<p style="color:#3F7D2C;margin:8px 0 0">${res.hayMarcas ? 'Ningún error en lo que hace la obra: todas sus conexiones' : 'Todas las conexiones revisadas'} se corresponden en las dos puntas.</p>`;
     const tablaAv = (lista) => `<div class="tabla-wrap"><table class="cab"><thead><tr><th>Cable</th><th>Dónde</th><th>Aviso</th></tr></thead><tbody>` +
       lista.map((e) => `<tr class="av"><td class="num">${esc(e.cable)}</td><td>${donde(e.en)}</td><td>${esc(e.texto)}</td></tr>`).join('') + '</tbody></table></div>';
     if (avs.length) h += `<h3 style="font-size:14px;margin:16px 0 6px">Avisos</h3>` + tablaAv(avs);
     if (viejos.length || avsViejos.length) {
-      h += `<details style="margin-top:18px"><summary style="cursor:pointer;font-weight:600">Diferencias en lo existente (${viejos.length} errores${avsViejos.length ? `, ${avsViejos.length} avisos` : ''}) <span style="font-weight:400;color:var(--gris)">— lo que no está pintado como parte de la obra; ya estaba así antes</span></summary>`;
-      h += tabla('Errores de conexiones', 'En lo existente.', viejos.filter((e) => e.grupo === 'conexion'));
-      h += tabla('Errores de cables', 'En lo existente.', viejos.filter((e) => e.grupo === 'cable'));
+      h += `<details style="margin-top:22px;border-top:1.5px solid var(--linea);padding-top:10px"><summary style="cursor:pointer;font-weight:600;font-size:16px">Errores previos (${viejos.length}${avsViejos.length ? ` y ${avsViejos.length} avisos` : ''}) <span style="font-weight:400;font-size:13px;color:var(--gris)">— en lo que no está pintado: ya estaban antes de la obra</span></summary>`;
+      h += tabla('Errores de conexiones', 'Previos a la obra.', viejos.filter((e) => e.grupo === 'conexion'));
+      h += tabla('Errores de cables', 'Previos a la obra.', viejos.filter((e) => e.grupo === 'cable'));
       if (avsViejos.length) h += `<h3 style="font-size:14px;margin:16px 0 6px">Avisos</h3>` + tablaAv(avsViejos);
       h += '</details>';
     }
@@ -4000,8 +4049,8 @@ window.__LISTA_KIT__="UEsDBBQAAAAIAEiBTl2qSvn5lwEAAMIHAAATAAAAW0NvbnRlbnRfVHlwZX
   }
   function csv() {
     const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const filas = [['Tipo', 'Parte', 'Cable', 'Veta', 'Plano', 'Hoja', 'Bornera', 'Borne', 'Dice que va a', 'Borne destino', 'Qué no coincide']];
-    const parte = (e) => (e.obra ? 'Obra' : 'Existente');
+    const filas = [['Tipo', 'Proyecto / previo', 'Cable', 'Veta', 'Plano', 'Hoja', 'Bornera', 'Borne', 'Dice que va a', 'Borne destino', 'Qué no coincide']];
+    const parte = (e) => (!res.hayMarcas ? '' : e.obra ? 'Proyecto' : 'Previo');
     for (const e of res.errores) filas.push([e.grupo === 'cable' ? 'Error de cable' : 'Error de conexión', parte(e), e.cable, e.veta, e.en.plano, e.en.hoja, e.en.bornera, e.en.borne, e.dice.bornera, e.dice.borne, e.texto]);
     for (const e of res.avisos) filas.push(['Aviso', parte(e), e.cable, e.veta, e.en.plano, e.en.hoja, e.en.bornera, e.en.borne, '', '', e.texto]);
     const txt = '\ufeff' + filas.map((f) => f.map(q).join(';')).join('\r\n');
