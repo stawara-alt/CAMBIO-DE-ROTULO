@@ -216,7 +216,7 @@ table.cab input.num.malo { border-color: var(--mal); background: #FBEDEB; }
       <p>Cambio de rótulo de borneras y listas de cables al formato nuevo de Edenor, armado y actualización de la lista de cables, y corrección de las conexiones entre borneras.</p>
     </div>
     <div><small>Rótulo</small><strong>Modelo 2020</strong><small style="margin-top:8px">Colores</small><strong>ET 3.1.7 002</strong></div>
-    <div><small>Archivos</small><strong>.xlsx</strong><small style="margin-top:8px">Se procesan</small><strong>en esta compu</strong><small style="margin-top:8px" id="version">Versión 16/10/2026 d</small></div>
+    <div><small>Archivos</small><strong>.xlsx</strong><small style="margin-top:8px">Se procesan</small><strong>en esta compu</strong><small style="margin-top:8px" id="version">Versión 16/10/2026 e</small></div>
   </header>
 
   <nav class="modos" role="tablist" aria-label="Función">
@@ -2156,6 +2156,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           const eq = equipoDe(bornera, datos.bornera);
           for (let r = r3 + 1; r <= fin; r++) {
             const v = celda(r, col); if (!v) continue;
+            // una nota escrita en la columna del cable ("Trasladado de 29L3-38") no es una veta
+            if (String(v.text).trim().length > 12 || /[A-Za-z\u00C0-\u00FF]{4,}\s+\S/.test(String(v.text).trim())) continue;
             const ap = celda(r, L.dAp)?.text || '';
             hilos.push({ hilo: v.text, fila: r, borne: lBorneN ? (celda(r, lBorneN.col)?.text || '') : '', destAp: expandirDestino(ap, eq), destApOrig: ap, destBo: celda(r, L.dBo)?.text || '',
               color: colorDe(sh, col, r), colorAp: colorDe(sh, L.dAp, r), colorBo: colorDe(sh, L.dBo, r) });
@@ -3053,6 +3055,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const conEquipoAdelante = (nombres, k) => nombres.some((n) => n && k && n !== k && n.length >= 3 && LI.partesB(n).l
       && ((k.endsWith(n) && /^[A-Z]+\d+$/.test(k.slice(0, -n.length))) || (n.endsWith(k) && /^[A-Z]+\d+$/.test(n.slice(0, -k.length)))));
     // variantes de escritura de un destino, para probar si tal como está no aparece ninguna bornera cargada
+    // dos borneras del mismo plano son la misma si coinciden, si una no dice el equipo o si una lo tiene adelante ("M1L0" = "B3M1L0")
+    const bloqueIgual = (a, b) => a === b || (!!a && !!b && (sueltoIgual(a, b) || conEquipoAdelante([a], b)));
     const romano = { I: '1', II: '2', III: '3', IV: '4', V: '5' };
     const variantes = (t) => {
       const s0 = String(t || '').trim(), out = [];
@@ -3180,7 +3184,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     const sinCableAvisos = new Map();
 
-    const errores = [], avisos = [], faltan = new Map(), vistos = new Set(), formVistas = new Set(), nomVistas = new Set(), porBorneVistos = new Set(), cruzados = new Set(), vetasDistintas = new Map();
+    const errores = [], avisos = [], faltan = new Map(), vistos = new Set(), formVistas = new Set(), nomVistas = new Set(), porBorneVistos = new Set(), cruzados = new Set(), vetasDistintas = new Map(), soloNombre = new Map();
     let revisadas = 0, bien = 0;
     const lugar = (x, e) => ({ plano: x.l.plano, hoja: e.o.hoja, bornera: e.o.bornera, borne: e.h.borne, archivo: x.l.archivo });
 
@@ -3299,10 +3303,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
             // la veta puede llegar a otro borne y seguir por un puente propio al borne indicado ("B01L10A/4200" con "23/13")
             const porPuente = (z) => partesDestino(hE(z)).some((q) => q.bo && borneN(q.bo) === borneN(p.bo) && (() => { const rr = resolver(q.ap, otro, z.o.bornera, q.orig); return rr && (rr.interno || rr.planos[0] === otro); })());
             const enBorne = (z) => z.borne === borneN(p.bo) || porPuente(z);
-            const puntos = (z) => (enBorne(z) ? 2 : 0) + (z.bloque === r.bloque ? 1 : 0) + (partesDestino(hE(z)).some((q) => borneN(q.bo) === e.borne) ? 2 : 0);
+            const puntos = (z) => (enBorne(z) ? 2 : 0) + (bloqueIgual(z.bloque, r.bloque) ? 1 : 0) + (partesDestino(hE(z)).some((q) => borneN(q.bo) === e.borne) ? 2 : 0);
             const z = alla.sort((a, b) => puntos(b) - puntos(a))[0];
             const problemas = [];
-            if (r.bloque && z.bloque !== r.bloque && otro.bloques.size > 1) problemas.push(`está en ${z.o.bornera}, no en ${r.bloque}`);
+            let deNombre = 0; // problemas que son solo del nombre de la bornera (el cable y el borne coinciden)
+            if (r.bloque && !bloqueIgual(z.bloque, r.bloque) && otro.bloques.size > 1) { problemas.push(`está en ${z.o.bornera}, no en ${r.bloque}`); deNombre++; }
             if (p.bo && !enBorne(z)) problemas.push(`está en el borne ${z.h.borne || '(sin número)'}, no en el ${p.bo}`);
             // y desde allá tiene que volver a esta bornera y a este borne
             const vuelta = partesDestino(hE(z));
@@ -3318,7 +3323,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
             // la vuelta nombra una bornera parecida a esta pero de otro equipo/banco (B1L1 en vez de B2L1): probable error de tipeo, se avisa aunque no esté cargada
             const vueltaParecida = (!vuelveAca && borneOk && !vuelveAOtra) ? vuelta.find((q) => { const pq = partesB(claveB(q.ap)), px = partesB([...x.claves][0] || ''); return LI.pareceBornera(q.ap) && pq.l && pq.l === px.l && pq.eq && px.eq && pq.eq !== px.eq; }) : null;
             if (!vuelta.length) { if (!borneOk) problemas.push('no tiene destino escrito'); }
-            else if (vueltaParecida) problemas.push(`el destino dice ${verDest(vuelta.find((q) => q === vueltaParecida))} en vez de esta bornera (${e.o.bornera}); el borne coincide, puede ser un error de tipeo`);
+            else if (vueltaParecida) { problemas.push(`el destino dice ${verDest(vuelta.find((q) => q === vueltaParecida))} en vez de esta bornera (${e.o.bornera}); el borne coincide, puede ser un error de tipeo`); deNombre++; }
             else if (!vuelveAca && borneOk && !vuelveAOtra) { /* cable y borne coinciden, la vuelta no contradice: OK */ }
             else if (!vuelveAca) problemas.push(`va hacia ${vuelta.map((q) => `${verDest(q)} ${q.bo}`.trim()).join(' / ')}, no hacia ${x === otro || (x.bloques.size > 1 && LI.pareceBornera(e.o.bornera)) ? e.o.bornera : x.nombre}`);
             else if (vuelveAca && vuelveAca.bo && e.borne && borneN(vuelveAca.bo) !== e.borne) problemas.push(`vuelve al borne ${vuelveAca.bo} de ${x.bloques.size > 1 && LI.pareceBornera(e.o.bornera) ? e.o.bornera : x.nombre}, pero acá la veta está en el ${e.h.borne}`);
@@ -3328,11 +3333,28 @@ https://github.com/nodeca/pako/blob/main/LICENSE
               formVistas.add(kf);
               errores.push({ ...base, veta: '', tipo: 'formacion', texto: `El cable tiene formación ${e.o.formacion} acá y ${z.o.formacion} en ${otro.l.plano} ${z.o.bornera} (hoja ${z.o.hoja})` });
             }
-            if (problemas.length) errores.push({ ...base, tipo: 'borne', alla: { plano: otro.l.plano, hoja: z.o.hoja, bornera: z.o.bornera, borne: z.h.borne }, texto: `En ${otro.l.plano} ${z.o.bornera} (hoja ${z.o.hoja}) la veta ${z.h.hilo} ${problemas.join('; ')}` });
-            else bien++;
+            const err = problemas.length ? { ...base, tipo: 'borne', alla: { plano: otro.l.plano, hoja: z.o.hoja, bornera: z.o.bornera, borne: z.h.borne }, texto: `En ${otro.l.plano} ${z.o.bornera} (hoja ${z.o.hoja}) la veta ${z.h.hilo} ${problemas.join('; ')}` } : null;
+            // si TODAS las vetas del cable entre estos dos planos coinciden borne a borne y solo difiere el nombre de la bornera,
+            // la bornera se nombra distinto en cada plano (B03L1 / B04L1): un solo aviso. Si otras vetas vuelven bien, es tipeo.
+            const kn = [kc, ...[x.i, otro.i].sort()].join('|');
+            if (!soloNombre.has(kn)) soloNombre.set(kn, { errs: [], ok: new Set(), mal: new Set(), cable: e.o.cable, en: lugar(x, e), aca: e.o.bornera, otro: otro.l.plano, alla: z.o.bornera, dice: new Set() });
+            const sn = soloNombre.get(kn);
+            if (err && deNombre === problemas.length && borneOk) { sn.errs.push(err); sn.mal.add(e.veta); sn.dice.add(vueltaParecida ? verDest(vueltaParecida) : r.bloque); }
+            else if (err) errores.push(err);
+            else { bien++; if (vuelveAca) sn.ok.add(e.veta); }
           }
         }
       }
+    }
+    for (const sn of soloNombre.values()) {
+      if (!sn.errs.length) continue;
+      // la misma veta vista desde la otra punta puede cerrar bien (allá la hoja sí dice el otro nombre): no cuenta.
+      // Si son pocas las vetas con el otro nombre, es tipeo; si son la mayoría, es la forma de nombrarla en ese plano.
+      const okSolas = [...sn.ok].filter((v) => !sn.mal.has(v)).length;
+      if (okSolas >= sn.mal.size) { errores.push(...sn.errs); continue; }
+      bien += sn.errs.length;
+      avisos.push({ cable: sn.cable, veta: [...new Set(sn.errs.map((x) => x.veta))].join(', '), en: sn.en,
+        texto: `Las vetas coinciden borne a borne con ${sn.otro} ${sn.alla}, pero la bornera se nombra distinto en cada plano (acá ${sn.aca}, allá dice ${[...sn.dice].join(', ')}${okSolas ? `; en ${okSolas} veta(s) sí cierra el nombre` : ''}): revisar el nombre` });
     }
     for (const a of sinCableAvisos.values()) avisos.push({ cable: a.cable, veta: a.vetas.join(', '), en: a.en,
       texto: `La conexión coincide borne a borne, pero en ${a.otro} (hoja ${[...new Set(a.hojas)].join(', ')}, borne ${[...new Set(a.bornes)].join(', ')}) no está marcado el cable ${a.cable} (vetas ${a.vetas.join(', ')})` });
