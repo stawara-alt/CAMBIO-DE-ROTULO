@@ -216,7 +216,7 @@ table.cab input.num.malo { border-color: var(--mal); background: #FBEDEB; }
       <p>Cambio de rótulo de borneras y listas de cables al formato nuevo de Edenor, armado y actualización de la lista de cables, y corrección de las conexiones entre borneras.</p>
     </div>
     <div><small>Rótulo</small><strong>Modelo 2020</strong><small style="margin-top:8px">Colores</small><strong>ET 3.1.7 002</strong></div>
-    <div><small>Archivos</small><strong>.xlsx</strong><small style="margin-top:8px">Se procesan</small><strong>en esta compu</strong><small style="margin-top:8px" id="version">Versión 16/10/2026 e</small></div>
+    <div><small>Archivos</small><strong>.xlsx</strong><small style="margin-top:8px">Se procesan</small><strong>en esta compu</strong><small style="margin-top:8px" id="version">Versión 20/10/2026 a</small></div>
   </header>
 
   <nav class="modos" role="tablist" aria-label="Función">
@@ -2012,6 +2012,18 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   // Guiones raros (– — _) valen como guion; la letra O pegada a números es un cero (BO1L1 = B01L1, L1O = L10).
   const claveB = (s) => norm(s).replace(/[\u2010-\u2015_]/g, '-').replace(/^[A-Z]{2,5}\s*-\s*(?=[A-Z]*\d*\s*L\s*\d)/, '').replace(/[(/;].*$/, '').replace(/["'\u201C\u201D\u00B4`.\s-]+/g, '')
     .replace(/LO$/, 'L0').replace(/(?<=[A-Z])O(?=\d)|(?<=\d)O(?=\d|$)/g, '0').replace(/([A-Z])0+(\d)/g, '$1$2');
+  // ¿el texto de una celda es un número de cable? (no una formación "12x1", ni un texto "CABLES AL INTERIOR DE Q1")
+  // Acepta códigos con letras en el medio separadas por - . / ("1-CT-036", "1-CT-033"), además de 18-105, S/N y la X de formación.
+  const esNumCable = (s) => {
+    const t = String(s || '').trim();
+    if (/^X{1,3}$/i.test(t)) return true;                 // X = marca de formación
+    if (/^S\s*\/?\s*N[º°O.]*$/i.test(t)) return true;      // S/N = cable sin número
+    if (!t || /\s/.test(t)) return false;                 // una sola palabra, sin espacios
+    if (!/\d/.test(t)) return false;                      // tiene que tener algún dígito
+    if (/^\d+\s*[xX][\d.,]/.test(t)) return false;        // formación: 12x1, 5x2,5
+    if (t.length > 14) return false;
+    return /^[A-Za-z0-9º°]+(?:[.\-/][A-Za-z0-9º°]+)*$/.test(t); // grupos alfanuméricos separados por - . /
+  };
   // claves de un rótulo que nombra varias borneras: "H2L7 - H7L7 - L01 LC", "B3L10 "A"- B4L10 "A"", "L3P-L3I-3L3-4L3".
   // Los pedazos que no son una bornera se pegan: "3 - L3" es 3L3 y "B4L3-AD" es B4L3AD.
   const clavesDe = (s) => {
@@ -2150,7 +2162,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           // columnas con el color de cada veta (encabezado "COLOR"): no son cables
           if (!num && /^COLOR/.test(norm(dest))) continue;
           // un texto en la fila de los números ("CABLES AL INTERIOR DE Q1") no es un número de cable
-          if (num && !/^[A-Z]{0,3}[.\-\s]?\d[\d.\-\s/]*[A-Z]{0,2}$|^X{1,3}$|^S\/?N$/i.test(num.trim())) continue;
+          if (num && !esNumCable(num)) continue;
           if (!num && !form && !opts.todas) continue;
           const hilos = [];
           const eq = equipoDe(bornera, datos.bornera);
